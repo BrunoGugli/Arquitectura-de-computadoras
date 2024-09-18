@@ -7,16 +7,16 @@ module tb_top_ALU_Interface;
     parameter NB_DATA = 8;
 
     // Signals
-    reg signed [NB_DATA-1:0] switches;
+    reg [NB_DATA-1:0] switches;
     reg btn_select;
     reg btn_set;
     reg clk;
     reg i_reset;
 
-    // outputs
-    wire signed [NB_DATA-1:0] o_result;
+    // Outputs
+    wire [NB_DATA-1:0] leds;
 
-    // top's instantiation
+    // Top's instantiation
     top_alu_interface #(
         .NB_OP(NB_OP),
         .NB_DATA(NB_DATA)
@@ -26,7 +26,7 @@ module tb_top_ALU_Interface;
         .btn_set(btn_set),
         .clk(clk),
         .i_reset(i_reset),
-        .o_result(o_result)
+        .leds(leds)  // Output changed from o_result to leds
     );
 
     initial begin
@@ -34,22 +34,20 @@ module tb_top_ALU_Interface;
         forever #50 clk = ~clk;
     end
 
-    // this is very similar to the interface testbench
     initial begin 
-
         $display("Test started at time %t", $time);
 
-        // set the system to a known state
+        // Set the system to a known state
         @(posedge clk);
         i_reset = 1;
         @(posedge clk);
         i_reset = 0;
 
-        // set operand1
+        // Set operand1
         @(posedge clk);
-        switches = 8'b00001010;
+        switches = 8'b00001010;  
         @(posedge clk);
-        btn_set = 1;
+        btn_set = 1; // Set operand1 to 10
         @(posedge clk);
         btn_set = 0;
 
@@ -59,9 +57,9 @@ module tb_top_ALU_Interface;
         @(posedge clk);
         btn_select = 0;  
 
-        // set operand2
+        // Set operand2
         @(posedge clk);
-        switches = 8'b00000101;
+        switches = 8'b00000101;  // Set operand2 to 5
         @(posedge clk);
         btn_set = 1;
         @(posedge clk);
@@ -73,28 +71,26 @@ module tb_top_ALU_Interface;
         @(posedge clk);
         btn_select = 0;
 
-        // set operator
+        // Set operator
         @(posedge clk);
-        switches = 6'b100000;
+        switches = 6'b100000;  // Set operator to ADD (opcode for addition)
         @(posedge clk);
         btn_set = 1;
         @(posedge clk);
         btn_set = 0;
 
-        // wait for the result
+        // Wait for the result
         #100;
 
-        // check the result
-        if (o_result !== 8'b00001111) begin
-            $display("Test failed at time %t", $time);
+        // Check the result (expecting 15 as 10 + 5)
+        if (leds !== 8'b00001111) begin
+            $display("Test failed at time %t. Expected 8'b00001111 but got %b", $time, leds);
         end else begin
             $display("Test passed at time %t", $time);
         end
 
-        // end the simulation
+        // End the simulation
         $finish;
     end
 
 endmodule
-
-

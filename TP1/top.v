@@ -7,13 +7,14 @@ module top_alu_interface #(
     input wire btn_set,
     input wire clk,
     input wire i_reset,
-    output wire signed [NB_DATA-1:0] o_result
+    output wire signed [NB_DATA-1:0] leds
 );
 
     // internal signals to connect the interface module
     wire signed [NB_DATA-1:0] operand1;
     wire signed [NB_DATA-1:0] operand2;
     wire [NB_OP-1:0] operator;
+    wire signed [NB_DATA-1:0] o_result;
 
     // interface's instantiation
     interface #(
@@ -31,15 +32,17 @@ module top_alu_interface #(
     );
 
     // ALU's instantiation
-    alu #(
+    ALU #(
         .NB_OP(NB_OP),
         .NB_DATA(NB_DATA)
     ) u_alu (
-        .operand1(operand1),
-        .operand2(operand2),
-        .operator(operator),
+        .i_operand1(operand1),
+        .i_operand2(operand2),
+        .i_opcode(operator),
         .o_result(o_result)
     );
 
-endmodule
+    // assign the result to the leds
+    assign leds = o_result;
 
+endmodule
