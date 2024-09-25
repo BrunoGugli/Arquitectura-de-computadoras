@@ -82,7 +82,7 @@ module tb_top_alu_interface;
         // Test: if we change a operand, the result should change
 
         // set the first operand
-        switches = 8'b00000101;
+        switches = 8'b00100101;
         @(posedge clk);
         btn_set_operand1 = 1;
         @(posedge clk);

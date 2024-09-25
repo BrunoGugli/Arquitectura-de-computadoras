@@ -21,8 +21,7 @@ module top_alu_interface #(
     // interface's instantiation
     interface #(
         .NB_OP(NB_OP),
-        .NB_DATA(NB_DATA),
-        .NB_OUT(NB_OUT)
+        .NB_DATA(NB_DATA)
     ) u_interface (
         .switches(switches),
         .btn_set_operand1(btn_set_operand1),
