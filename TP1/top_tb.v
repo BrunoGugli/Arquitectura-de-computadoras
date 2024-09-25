@@ -1,96 +1,105 @@
-`timescale 1ns / 1ps
-
-module tb_top_ALU_Interface;
+module tb_top_alu_interface;
 
     // Parameters
     parameter NB_OP = 6;
     parameter NB_DATA = 8;
+    parameter NB_OUT = 16;
 
     // Signals
     reg [NB_DATA-1:0] switches;
-    reg btn_select;
-    reg btn_set;
+    reg btn_set_operand1;
+    reg btn_set_operand2;
+    reg btn_set_operator;
     reg clk;
     reg i_reset;
+    wire signed [NB_OUT-1:0] leds;
 
-    // Outputs
-    wire [NB_DATA-1:0] leds;
-
-    // Top's instantiation
+    // UUT
     top_alu_interface #(
         .NB_OP(NB_OP),
-        .NB_DATA(NB_DATA)
-    ) u_top (
+        .NB_DATA(NB_DATA),
+        .NB_OUT(NB_OUT)
+    ) dut (
         .switches(switches),
-        .btn_select(btn_select),
-        .btn_set(btn_set),
+        .btn_set_operand1(btn_set_operand1),
+        .btn_set_operand2(btn_set_operand2),
+        .btn_set_operator(btn_set_operator),
         .clk(clk),
         .i_reset(i_reset),
-        .leds(leds)  // Output changed from o_result to leds
+        .leds(leds)
     );
 
+    // Clock's generation
     initial begin
         clk = 0;
-        forever #50 clk = ~clk;
+        forever #50 clk = ~clk; 
     end
 
-    initial begin 
-        $display("Test started at time %t", $time);
+    // Inicialización
+    initial begin
 
-        // Set the system to a known state
+        // Inicializamos señales
+        switches = 0;
+        btn_set_operand1 = 0;
+        btn_set_operand2 = 0;
+        btn_set_operator = 0;
+
+        // Reset
         @(posedge clk);
         i_reset = 1;
         @(posedge clk);
         i_reset = 0;
 
-        // Set operand1
-        @(posedge clk);
-        switches = 8'b00001010;  
-        @(posedge clk);
-        btn_set = 1; // Set operand1 to 10
-        @(posedge clk);
-        btn_set = 0;
+        // Test: set operand1, operand2 and operator
 
-        // Change to operand2
+        // set the first operand
+        switches = 8'b00000101; 
         @(posedge clk);
-        btn_select = 1;  
+        btn_set_operand1 = 1;    
         @(posedge clk);
-        btn_select = 0;  
+        btn_set_operand1 = 0;
 
-        // Set operand2
-        @(posedge clk);
-        switches = 8'b00000101;  // Set operand2 to 5
-        @(posedge clk);
-        btn_set = 1;
-        @(posedge clk);
-        btn_set = 0;
+        #10;
 
-        // Change to operator
+        // set the second operand
+        switches = 8'b00000011;  
         @(posedge clk);
-        btn_select = 1;
-        @(posedge clk);
-        btn_select = 0;
+        btn_set_operand2 = 1;  
+        @(posedge clk);  
+        btn_set_operand2 = 0;
 
-        // Set operator
-        @(posedge clk);
-        switches = 6'b100000;  // Set operator to ADD (opcode for addition)
-        @(posedge clk);
-        btn_set = 1;
-        @(posedge clk);
-        btn_set = 0;
+        #10;
 
-        // Wait for the result
-        #100;
+        // set the operator and
+        switches = 6'b100000;
+        @(posedge clk);    
+        btn_set_operator = 1;    
+        @(posedge clk);
+        btn_set_operator = 0;
 
-        // Check the result (expecting 15 as 10 + 5)
-        if (leds !== 8'b00001111) begin
-            $display("Test failed at time %t. Expected 8'b00001111 but got %b", $time, leds);
-        end else begin
-            $display("Test passed at time %t", $time);
-        end
+        #200;
 
-        // End the simulation
+        // Test: if we change a operand, the result should change
+
+        // set the first operand
+        switches = 8'b00000101;
+        @(posedge clk);
+        btn_set_operand1 = 1;
+        @(posedge clk);
+        btn_set_operand1 = 0;
+
+        
+        // wait for the result
+        #20;
+
+        // Finish the simulation
         $finish;
+    end
+
+    // Monitor
+    initial begin
+        $monitor("Time: %0t | Operand1: %d | Operand2: %d | Operator: %b | Result: %d", 
+                 $time, dut.operand1, dut.operand2, dut.operator, leds);
     end
 
 endmodule

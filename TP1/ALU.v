@@ -1,10 +1,11 @@
 module ALU #(parameter NB_OP = 6,
-             parameter NB_DATA = 8
+             parameter NB_DATA = 8,
+             parameter NB_OUT = 16
 )(
     input wire signed [NB_DATA-1:0] i_operand1,  // Primer operando de 8 bits
     input wire signed [NB_DATA-1:0] i_operand2,  // Segundo operando de 8 bits
     input wire [NB_OP-1:0] i_opcode,            // Código de operación de 6 bits
-    output reg signed [NB_DATA-1:0] o_result    // Resultado de la operación
+    output reg signed [NB_OUT-1:0] o_result    // Resultado de la operación
 );
     
 always @(*) begin
