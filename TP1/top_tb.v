@@ -11,7 +11,7 @@ module tb_top_alu_interface;
     reg btn_set_operand2;
     reg btn_set_operator;
     reg clk;
-    reg i_reset;
+    reg reset;
     wire signed [NB_OUT-1:0] leds;
 
     // UUT
@@ -20,13 +20,13 @@ module tb_top_alu_interface;
         .NB_DATA(NB_DATA),
         .NB_OUT(NB_OUT)
     ) dut (
-        .switches(switches),
-        .btn_set_operand1(btn_set_operand1),
-        .btn_set_operand2(btn_set_operand2),
-        .btn_set_operator(btn_set_operator),
-        .clk(clk),
-        .i_reset(i_reset),
-        .leds(leds)
+        .i_switches(switches),
+        .i_btn_set_operand1(btn_set_operand1),
+        .i_btn_set_operand2(btn_set_operand2),
+        .i_btn_set_operator(btn_set_operator),
+        .i_clk(clk),
+        .i_reset(reset),
+        .o_leds(leds)
     );
 
     // Clock's generation
@@ -46,9 +46,9 @@ module tb_top_alu_interface;
 
         // Reset
         @(posedge clk);
-        i_reset = 1;
+        reset = 1;
         @(posedge clk);
-        i_reset = 0;
+        reset = 0;
 
         // Test: set operand1, operand2 and operator
 
@@ -99,7 +99,7 @@ module tb_top_alu_interface;
     // Monitor
     initial begin
         $monitor("Time: %0t | Operand1: %d | Operand2: %d | Operator: %b | Result: %d", 
-                 $time, dut.operand1, dut.operand2, dut.operator, leds);
+                 $time, dut.i_operand1, dut.i_operand2, dut.i_operator, o_leds);
     end
 
 endmodule
