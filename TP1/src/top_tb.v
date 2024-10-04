@@ -96,10 +96,4 @@ module tb_top_alu_interface;
         $finish;
     end
 
-    // Monitor
-    initial begin
-        $monitor("Time: %0t | Operand1: %d | Operand2: %d | Operator: %b | Result: %d", 
-                 $time, dut.i_operand1, dut.i_operand2, dut.i_operator, o_leds);
-    end
-
 endmodule
