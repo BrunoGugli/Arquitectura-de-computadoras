@@ -1,7 +1,7 @@
 module baud_rate_gen
 #(
-    parameter clk_freq = 100000000, // 100 MHz
-    parameter baud_rate = 19600 // 19.6 kbps
+    parameter clk_freq = 50000000, // 50 MHz
+    parameter baud_rate = 9600 // 9.6 kbps
 )
 (
     input wire i_clk,      // system clock
