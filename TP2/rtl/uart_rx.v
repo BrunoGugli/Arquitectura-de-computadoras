@@ -1,16 +1,16 @@
 module uart_receiver
 #(
-    parameter DATA_BITS = 8; // Number of data bits
-    parameter STP_BITS_TICKS = 16; // one complete stop bit ( 16 ticks of oversampling clock)
+    parameter DATA_BITS = 8, // Number of data bits
+    parameter STP_BITS_TICKS = 16 // one complete stop bit ( 16 ticks of oversampling clock)
 )
 (
-    input wire i_clk; // System clock
-    input wire i_reset; // Reset signal
-    input wire i_rx; // Received data
-    input wire i_bd_tick; // Come from baud_rate_gen module, it is the tick
-    output reg o_rx_done; // Received data is ready
-    output reg [DATA_BITS-1:0] o_data; // Received data
-)
+    input wire i_clk, // System clock
+    input wire i_reset, // Reset signal
+    input wire i_rx, // Received data
+    input wire i_bd_tick, // Come from baud_rate_gen module, it is the tick
+    output reg o_rx_done, // Received data is ready
+    output wire [DATA_BITS-1:0] o_data // Received data
+);
 
 // Local parameters for the state machine
 localparam [1:0] idle = 2'b00;
@@ -56,7 +56,7 @@ always @(*) begin
     case (state)
 
         idle: begin
-            if (i_rx == 1) begin
+            if (~i_rx) begin
                 next_state = start;
                 next_tick_counter = 0;
             end
