@@ -87,6 +87,8 @@ always @(*) begin
                     end else begin
                         next_data_counter = data_counter + 1;
                     end
+                end else begin
+                    next_tick_counter = tick_counter + 1;
                 end
             end
         end

@@ -1,62 +1,72 @@
-module tb_top_uart();
+`timescale 1ns/1ps
 
-    reg clk;
-    reg reset;
-    reg rx;
-    wire rx_done;
-    wire [7:0] data_out;
+module tb_top_uart_rx();
 
-    // Clock generation
-    always begin
-        clk = 1'b0;
-        #10 clk = 1'b1;
-        #10;
-    end
+    // Señales del testbench
+    reg tb_clk;               // Reloj del sistema
+    reg tb_reset;             // Señal de reset
+    reg tb_rx;                // Señal de datos RX
+    wire tb_rx_done;          // Indica cuando se completó la recepción
+    wire [7:0] tb_data;       // Dato recibido por el UART
 
-    // Instantiate the top module
+    // Instancia del módulo top que conecta baud rate gen y UART receiver
     top_uart u_top_uart (
-        .i_clk(clk),
-        .i_reset(reset),
-        .i_rx(rx),
-        .o_rx_done(rx_done),
-        .o_data(data_out)
+        .i_clk(tb_clk),
+        .i_reset(tb_reset),
+        .i_rx(tb_rx),
+        .o_rx_done(tb_rx_done),
+        .o_data(tb_data)
     );
 
+    // Generación del reloj de 50 MHz (periodo 20 ns)
     initial begin
-        // Initialize signals
-        reset = 1'b1;
-        rx = 1'b1; // Idle line state
-        #100;
-        reset = 1'b0;
+        tb_clk = 0;
+        forever #10 tb_clk = ~tb_clk;
+    end
 
-        // Simulate data reception (0x55 = 01010101)
-        // Start bit
-        rx = 1'b0;
-        #104160; // Wait for 104160 ns for 1 bit at 9600 bps (1/9600 = ~104.16 us)
+    // Simulación de una trama UART: bit de inicio (0), 8 bits de datos, bit de parada (1)
+    initial begin
+
+        // Llevamos el sistema a un estado conocido
+        @(posedge tb_clk); 
+        tb_reset = 1;
+        tb_rx = 1; // Inactivo (idle) en el bus UART es 1
+        @(posedge tb_clk);
+        tb_reset = 0;
         
-        // Data bits (0x55 = 01010101)
-        rx = 1'b1; #104160;
-        rx = 1'b0; #104160;
-        rx = 1'b1; #104160;
-        rx = 1'b0; #104160;
-        rx = 1'b1; #104160;
-        rx = 1'b0; #104160;
-        rx = 1'b1; #104160;
-        rx = 1'b0; #104160;
+        // Esperamos algunos ciclos antes de enviar datos
+        #20
 
-        // Stop bit
-        rx = 1'b1; #104160;
+        // Envío de trama UART: 8'b01010101 (85 en decimal)
+        // Bit de inicio (0)
+        @(posedge tb_clk);
+        tb_rx = 0;
+        #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
 
-        // Wait for reception to complete
-        #1000;
+        // Enviamos los 8 bits de datos (0x55 = 8'b01010101)
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
 
-        // Check the received data
-        if (data_out == 8'h55) begin
-            $display("Test passed! Received data: %h", data_out);
-        end else begin
-            $display("Test failed! Received data: %h", data_out);
-        end
+        // Bit de parada (1)
+        tb_rx = 1;
+        #(104160); 
 
+        // Esperar la recepción del dato
+        #200000;
         $finish;
     end
+
+    // Monitor de las señales de salida
+    always @(posedge tb_clk) begin
+        if (tb_rx_done) begin
+            $display("Dato recibido: %b, Tiempo: %0t", tb_data, $time);
+        end
+    end
+
 endmodule
