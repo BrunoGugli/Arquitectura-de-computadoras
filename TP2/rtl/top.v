@@ -4,7 +4,7 @@ module top_uart
     input wire i_reset,     // Reset signal from testbench
     input wire i_rx,        // Serial data input from testbench
     output wire o_rx_done,  // Output flag when reception is done
-    output wire [7:0] o_data // Output received data
+    output wire [9:0] o_data // Output received data (now 10 bits)
 );
 
     // Signals to connect baud_rate_gen and uart_receiver
@@ -22,9 +22,9 @@ module top_uart
         .o_baud_tick(baud_tick)  // Output tick to the receiver
     );
 
-    // UART receiver instance
+    // UART receiver instance (now 10 bits)
     uart_receiver #(
-        .DATA_BITS(8),        // 8-bit data
+        .DATA_BITS(10),       // 10-bit data (modified)
         .STP_BITS_TICKS(16)   // 16 ticks for stop bit
     )
     u_uart_receiver (
@@ -33,7 +33,7 @@ module top_uart
         .i_rx(i_rx),          // Connect to received data
         .i_bd_tick(baud_tick),// Connect baud tick from baud_rate_gen
         .o_rx_done(o_rx_done),// Output signal when reception is done
-        .o_data(o_data)       // Output received data
+        .o_data(o_data)       // Output received data (now 10 bits)
     );
 
 endmodule

@@ -1,15 +1,15 @@
 module uart_receiver
 #(
-    parameter DATA_BITS = 8, // Number of data bits
-    parameter STP_BITS_TICKS = 16 // one complete stop bit ( 16 ticks of oversampling clock)
+    parameter DATA_BITS = 10, // Number of data bits (now 10 bits)
+    parameter STP_BITS_TICKS = 16 // One complete stop bit (16 ticks of oversampling clock)
 )
 (
     input wire i_clk, // System clock
     input wire i_reset, // Reset signal
     input wire i_rx, // Received data
-    input wire i_bd_tick, // Come from baud_rate_gen module, it is the tick
-    output reg o_rx_done, // Received data is ready
-    output wire [DATA_BITS-1:0] o_data // Received data
+    input wire i_bd_tick, // Baud rate generator tick
+    output reg o_rx_done, // Indicates that received data is ready
+    output wire [DATA_BITS-1:0] o_data // Received data (now 10 bits)
 );
 
 // Local parameters for the state machine
@@ -19,37 +19,29 @@ localparam [1:0] data = 2'b10;
 localparam [1:0] stop = 2'b11;
 
 // Registers for the state machine
-reg [1:0] state, next_state; // Reg for the current state and next state
-reg [3:0] tick_counter, next_tick_counter; // 7 to start, 15 to data, STP_BITS_TICKS to stop
-reg [2:0] data_counter, next_data_counter; // 0 to 7 in 8 bits data
-reg [DATA_BITS-1:0] data_reg, next_data_reg; // Data register
+reg [1:0] state, next_state; // Current state and next state
+reg [3:0] tick_counter, next_tick_counter; // Tick counters (7 to start, 15 to data, STP_BITS_TICKS to stop)
+reg [3:0] data_counter, next_data_counter; // Now needs to count from 0 to 9 for 10 bits of data
+reg [DATA_BITS-1:0] data_reg, next_data_reg; // Data register (now 10 bits)
 
 // State machine
 always @(posedge i_clk) begin
-
     if (i_reset) begin
-
         state <= idle;
         tick_counter <= 0;
         data_counter <= 0;
         data_reg <= 0;
-
     end else begin
-
         state <= next_state;
         tick_counter <= next_tick_counter;
         data_counter <= next_data_counter;
         data_reg <= next_data_reg;
-
     end
 end
 
 // Next state logic
 always @(*) begin
-
-    // Here we set all as next_state, next_tick_counter, etc, because these values are going to be assigned to
-    // the current state, current tick_counter, etc, in the next posedge of the clock
-
+    // Default assignments
     next_state = state;
     o_rx_done = 1'b0;
     next_tick_counter = tick_counter;
@@ -57,7 +49,6 @@ always @(*) begin
     next_data_reg = data_reg;
 
     case (state)
-
         idle: begin
             if (~i_rx) begin
                 next_state = start;
@@ -105,7 +96,6 @@ always @(*) begin
         end
 
     endcase
-
 end
 
 // Output data

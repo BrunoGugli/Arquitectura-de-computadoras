@@ -4,20 +4,23 @@ module fifo_receiver
     parameter FIFO_DEPTH = 16 // FIFO depth
 )
 (
-    input wire i_clk, i_reset,
-    input wire i_wr_en, i_rd_en,
-    input wire [DATA_WIDTH-1:0] i_wr_data,
-    output reg [DATA_WIDTH-1:0] o_rd_data,
-    output reg o_empty
+    input wire i_clk, // Clock
+    input wire i_reset, // Reset
+    input wire i_wr_en, // Write enable
+    input wire i_rd_en, // Read enable
+    input wire [DATA_WIDTH-1:0] i_wr_data, // Data to write
+    output reg [DATA_WIDTH-1:0] o_rd_data, // Data to read
+    output reg o_empty // FIFO empty flag
 );
 
 // Internal registers and pointers
-reg [DATA_WIDTH-1:0] fifo_mem [FIFO_DEPTH-1:0];
-reg [$clog2(FIFO_DEPTH)-1:0] wr_ptr, rd_ptr;
-reg [$clog2(FIFO_DEPTH):0] fifo_count;
+reg [DATA_WIDTH-1:0] fifo_mem [FIFO_DEPTH-1:0]; // Array of FIFO registers
+reg [$clog2(FIFO_DEPTH)-1:0] wr_ptr; // write pointer
+reg [$clog2(FIFO_DEPTH)-1:0] rd_ptr; // read pointer
+reg [$clog2(FIFO_DEPTH):0] fifo_count; // cant of elements in the FIFO
 
 // Next state registers
-reg [$clog2(FIFO_DEPTH)-1:0] next_wr_ptr, next_rd_ptr;
+reg [$clog2(FIFO_DEPTH)-1:0] next_wr_ptr, next_rd_ptr; 
 reg [$clog2(FIFO_DEPTH):0] next_fifo_count;
 reg next_empty;
 
