@@ -1,35 +1,35 @@
 module interface_uart_alu
 #(
-    parameter NB_OP = 6,
-    parameter NB_DATA = 8,
-    parameter NB_FULL_DATA = 10
+    parameter NB_OP = 6, // opcode width
+    parameter NB_DATA = 8, // data width
+    parameter NB_FULL_DATA = 10 // full data width (opcode + data) wich came from uart
 )
 (
-    input wire i_clk,
-    input wire i_reset,
-    input wire [NB_FULL_DATA-1:0] i_full_data,
-    input wire i_tx_busy,
-    input wire i_full_data_ready,
-    output reg [NB_DATA-1:0] o_operand1,
-    output reg [NB_DATA-1:0] o_operand2,
-    output reg [NB_OP-1:0] o_opcode,
+    input wire i_clk, // System clock 
+    input wire i_reset, // Reset signal (maybe not used)
+    input wire [NB_FULL_DATA-1:0] i_full_data, // Full data from uart
+    input wire i_tx_busy, // Indicates if uart is busy
+    input wire i_full_data_ready, // Indicates if full data is ready (have to be connected to rx_done)
+    output reg [NB_DATA-1:0] o_operand1, // Operand 1 to send to alu
+    output reg [NB_DATA-1:0] o_operand2, // Operand 2 to send to alu
+    output reg [NB_OP-1:0] o_opcode, // Opcode to send to alu
     output reg o_data_ready //ver donde mandarlo
 );
 
-    // Estados de la máquina de estados
+    // States
     reg [1:0] IDLE;
     reg [1:0] ASSIGN;
     reg [1:0] READY;
 
     reg state, next_state;
 
-    // Flags de operandos y opcode
+    // Flags to indicate if the data is ready
     reg operand1_ready;
     reg operand2_ready;
     reg opcode_ready;
 
-    // Lógica de la máquina de estados
-    always @(posedge i_clk or posedge i_reset) begin
+    // State machine logic
+    always @(posedge i_clk ) begin
         if (i_reset) begin
             state <= IDLE;
             operand1_ready <= 1'b0;
