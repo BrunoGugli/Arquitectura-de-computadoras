@@ -37,25 +37,80 @@ module tb_top_uart_rx();
         // Esperamos algunos ciclos antes de enviar datos
         #20
 
-        // Envío de trama UART: 10'b1101010101 (opcode 11, datos 85 en decimal)
         // Bit de inicio (0)
         @(posedge tb_clk);
         tb_rx = 0;
         #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
 
-        // Enviamos el opcode de operando 01 -> operando 1
+        // Enviamos los 8 bits de datos (85 -> 01010101)
+        tb_rx = 1; #(104160);
         tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+
+        // Enviamos el opcode de operando 00 -> operando 1
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+
+
+        // Bit de parada (1)
+        tb_rx = 1;
+        #(104160); 
+
+        // Esperar la recepción del dato
+        #200000;
+
+        // mandamos otro dato
+        // Bit de inicio (0)
+        @(posedge tb_clk);
+        tb_rx = 0;
+        #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
+
+        // Enviamos los 8 bits de datos (245 -> 11110101)
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
         tb_rx = 1; #(104160);
 
-        // Enviamos los 8 bits de datos (0x55 = 8'b01010101)
+        // Enviamos el opcode de operando 01 -> operando 2
         tb_rx = 1; #(104160);
         tb_rx = 0; #(104160);
-        tb_rx = 1; #(104160);
+
+        // Bit de parada (1)
+        tb_rx = 1;
+        #(104160);
+
+        // Esperar la recepción del dato
+        #200000; 
+
+        // mandamos el opcode suma
+        // Bit de inicio (0)
+        @(posedge tb_clk);
+        tb_rx = 0;
+        #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
+
+        // Enviamos los 6 bits de datos (suma -> 6'b100000)
+
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
         tb_rx = 0; #(104160);
         tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160); //idle
+        tb_rx = 0; #(104160); //idle
+
+        // Enviamos el opcode de operador 10 -> opcode 
         tb_rx = 0; #(104160);
         tb_rx = 1; #(104160);
-        tb_rx = 0; #(104160);
 
         // Bit de parada (1)
         tb_rx = 1;
