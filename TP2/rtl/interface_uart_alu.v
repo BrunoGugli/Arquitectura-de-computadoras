@@ -17,11 +17,11 @@ module interface_uart_alu
 );
 
     // States
-    reg [1:0] IDLE;
-    reg [1:0] ASSIGN;
-    reg [1:0] READY;
+    localparam [1:0] IDLE = 2'b00;
+    localparam [1:0] ASSIGN = 2'b01;
+    localparam [1:0] READY = 2'b10;
 
-    reg state, next_state;
+    reg [1:0] state, next_state;
 
     // Flags to indicate if the data is ready
     reg operand1_ready;
@@ -41,6 +41,7 @@ module interface_uart_alu
         end
     end
 
+    // implementar los next :)
     always @(*) begin
         next_state = state;
         case (state)
@@ -51,22 +52,27 @@ module interface_uart_alu
                 end
             end
             ASSIGN: begin
-                case (i_full_data[NB_FULL_DATA-1:NB_FULL_DATA-2])
-                    2'b00: begin
-                        o_operand1 = i_full_data[NB_DATA-1:0];
-                        operand1_ready = 1'b1;
-                    end
-                    2'b01: begin
-                        o_operand2 = i_full_data[NB_DATA-1:0];
-                        operand2_ready = 1'b1;
-                    end
-                    2'b10: begin
-                        o_opcode = i_full_data[NB_OP-1:0];
-                        opcode_ready = 1'b1;
-                    end
-                endcase
+                
+    
+                    case (i_full_data[NB_FULL_DATA-1:NB_FULL_DATA-2])
+                        2'b00: begin
+                            o_operand1 = i_full_data[NB_DATA-1:0];
+                            operand1_ready = 1'b1;
+                        end
+                        2'b01: begin
+                            o_operand2 = i_full_data[NB_DATA-1:0];
+                            operand2_ready = 1'b1;
+                        end
+                        2'b10: begin
+                            o_opcode = i_full_data[NB_OP-1:0];
+                            opcode_ready = 1'b1;
+                        end
+                    endcase
+                
                 if (operand1_ready & operand2_ready & opcode_ready) begin
                     next_state = READY;
+                end else begin
+                    next_state = IDLE;
                 end
             end
             READY: begin
