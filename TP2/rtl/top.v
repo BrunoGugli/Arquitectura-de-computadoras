@@ -15,6 +15,8 @@ module top_uart #(
     // Signals to connect uart_receiver and interface ALU-UART
     wire data_ready; // Wire to indicate when data is ready in the UART receiver
 
+    wire busy; // Wire to indicate when the UART transmitter is busy
+
     // Signals to connect interface_uart_alu and ALU
     wire [7:0] operand1;
     wire [7:0] operand2;
@@ -56,7 +58,7 @@ module top_uart #(
         .i_clk(i_clk),            // Connect to system clock
         .i_reset(i_reset),        // Connect to reset signal
         .i_full_data(o_data),     // Connect the full data from uart_receiver to interface ALU-UART
-        .i_tx_busy(1'b0),         // Set TX busy to 0 (not using transmission in this example)
+        .i_tx_busy(busy),         // Set TX busy to 0 (not using transmission in this example)
         .i_full_data_ready(o_rx_done), // Connect the reception done signal to indicate full data ready
         .o_operand1(operand1),    // Operand 1 from UART interface
         .o_operand2(operand2),    // Operand 2 from UART interface
@@ -87,7 +89,8 @@ module top_uart #(
         .i_reset(i_reset),      // Connect to reset signal
         .i_tx_start(o_data_valid), // Connect to data valid signal from ALU
         .i_bd_tick(baud_tick),  // Connect baud tick from baud_rate_gen
-        .i_data(o_result)      // Connect ALU output result to be transmitted
+        .i_data(o_result),      // Line to transmit data from ALU
+        .o_tx_transmiting(busy) // Output signal to indicate transmission is in progress
     );
 
 
