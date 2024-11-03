@@ -9,6 +9,7 @@ module uart_transmitter
     input wire i_tx_start, // Start transmission
     input wire i_bd_tick, // Come from baud_rate_gen module, it is the tick s_tick
     input wire [DATA_BITS-1:0] i_data, // Data to be transmitted
+    output reg o_tx_transmiting, // Transmission is in progress
     output reg o_tx_done, // Transmission is done
     output wire o_tx  // Transmitted data
 );
@@ -36,6 +37,7 @@ always @(posedge i_clk) begin
         data_counter <= 0;
         data_reg <= 0;
         tx_reg <= 1;
+        o_tx_transmiting <= 1'b0;
     
     end else begin
     
@@ -61,15 +63,18 @@ always @(*) begin
 
         idle: begin
             next_tx_reg = 1'b1;
+            o_tx_transmiting = 1'b0;
             if (i_tx_start) begin
                 next_state = start;
                 next_tick_counter = 0;
                 next_data_reg = i_data;
+                o_tx_transmiting = 1'b0;
             end
         end
 
         start: begin
             next_tx_reg = 1'b0;
+            o_tx_transmiting = 1'b1;
             if(i_bd_tick) begin
                 if (tick_counter == 15) begin
                     next_state = data;
