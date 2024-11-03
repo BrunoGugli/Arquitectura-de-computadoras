@@ -86,7 +86,7 @@ always @(*) begin
             if(i_bd_tick) begin
                 if (tick_counter == 15) begin
                     next_tick_counter = 0;
-                    next_data_reg = b_reg >> 1;
+                    next_data_reg = data_reg >> 1;
                     if (data_counter == (DATA_BITS-1)) begin
                         next_state = stop;
                     end else begin
