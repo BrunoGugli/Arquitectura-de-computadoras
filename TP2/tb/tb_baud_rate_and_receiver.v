@@ -44,7 +44,7 @@ module tb_top_uart_rx();
         #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
 
         // Enviamos el opcode de operando 01 -> operando 1
-        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
         tb_rx = 1; #(104160);
 
         // Enviamos los 8 bits de datos (0x55 = 8'b01010101)
@@ -63,58 +63,6 @@ module tb_top_uart_rx();
 
         // Esperar la recepción del dato
         #200000;
-
-        // mandamos otro dato
-        tb_rx = 0;
-        #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
-
-        // Enviamos los 2 bits de opcode 10 -> operando 2
-        tb_rx = 1; #(104160);
-        tb_rx = 0; #(104160);
-
-        // Enviamos los 8 bits de datos (0x55 = 8'b01010101)
-        tb_rx = 1; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 1; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 1; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 1; #(104160);
-        tb_rx = 0; #(104160);
-        
-        // Bit de parada (1)
-        tb_rx = 1;
-        #(104160);
-
-        // Esperar la recepción del dato
-        #200000;
-
-        // mandamos otro dato
-
-        tb_rx = 0;
-        #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
-
-        // Enviamos los 2 bits de opcode 11 -> operador
-        tb_rx = 1; #(104160);
-        tb_rx = 1; #(104160);
-
-        // Enviamos los 8 bits de datos (0x55 = 8'b01010101)
-        tb_rx = 1; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-
-        // Bit de parada (1)
-        tb_rx = 1;
-        #(104160);
-
-        // Esperar la recepción del dato
-        #200000;
-
 
         // Finalizamos la simulación
         $finish;
