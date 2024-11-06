@@ -14,8 +14,7 @@ module tb_top_uart_rx();
         .i_clk(tb_clk),
         .i_reset(tb_reset),
         .i_rx(tb_rx),
-        .o_rx_done(tb_rx_done),
-        .o_data(tb_data)
+        .o_rx_done(tb_rx_done)
     );
 
     // Generación del reloj de 50 MHz (periodo 20 ns)
