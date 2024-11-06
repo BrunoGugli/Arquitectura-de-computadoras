@@ -7,8 +7,12 @@ module top_uart #(
     input wire i_rx,            // Serial data input from testbench
     output wire o_rx_done,      // Output flag when reception is done
     output wire o_tx,           // Serial data output to testbench
-    output wire o_data_valid    // Output data valid
+    output wire o_data_valid,    // Output data valid
+    output wire o_is_on // Output flag to indicate if the system is on
 );
+
+    // Set o_is_on to 1
+    assign o_is_on = 1;
 
     // Signals to connect baud_rate_gen and uart_receiver
     wire baud_tick;
