@@ -76,17 +76,17 @@ module top_uart #(
         .i_clk(i_clk),             // Connect to system clock
         .i_reset(i_reset),         // Connect to reset signal
         .i_data(rx_data),     // Connect the full data from uart_receiver to interface ALU-UART
-        .i_tx_busy(1'b0),          // Set TX busy to 0 (not using transmission in this example)
+        .i_tx_busy(busy),          // Set TX busy to 0 (not using transmission in this example)
         .i_data_ready(o_rx_done), // Connect the reception done signal to indicate full data ready
         .o_operand1(operand1),     // Operand 1 from UART interface
         .o_operand2(operand2),     // Operand 2 from UART interface
         .o_opcode(opcode),         // Opcode from UART interface
         .o_data_ready(o_data_valid), // Output data ready for ALU processing
-        .operand1_ready(o_operand1_ready), // Output flag to indicate if operand1 is ready
-        .operand2_ready(o_operand2_ready), // Output flag to indicate if operand2 is ready
-        .opcode_ready(o_opcode_ready)      // Output flag to indicate if opcode is ready
+        .operand1_ready(operand1_ready), // Output flag to indicate if operand1 is ready
+        .operand2_ready(operand2_ready), // Output flag to indicate if operand2 is ready
+        .opcode_ready(opcode_ready)      // Output flag to indicate if opcode is ready
     );
-/*
+
     // ALU instance
     ALU #(
         .NB_OP(6),
@@ -115,5 +115,5 @@ module top_uart #(
         .o_tx_done(tx_done),     // Connect o_tx_done to tx_done (not used here)
         .o_tx(o_tx)              // Output transmitted data
     );
-*/
+
 endmodule
