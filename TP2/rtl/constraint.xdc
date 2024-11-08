@@ -26,3 +26,12 @@ set_property IOSTANDARD LVCMOS33 [get_ports o_rx_done]
 ## Data valid indicator (o_data_valid) - LED
 set_property PACKAGE_PIN L1 [get_ports o_is_on]
 set_property IOSTANDARD LVCMOS33 [get_ports o_is_on]
+
+set_property PACKAGE_PIN N3 [get_ports operand1_ready]
+set_property IOSTANDARD LVCMOS33 [get_ports operand1_ready]
+
+set_property PACKAGE_PIN P3 [get_ports operand2_ready]
+set_property IOSTANDARD LVCMOS33 [get_ports operand2_ready]
+
+set_property PACKAGE_PIN U3 [get_ports opcode_ready]
+set_property IOSTANDARD LVCMOS33 [get_ports opcode_ready]
