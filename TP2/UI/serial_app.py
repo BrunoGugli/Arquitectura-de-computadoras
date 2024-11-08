@@ -2,12 +2,16 @@ import tkinter as tk
 from tkinter import ttk
 import serial
 import time
+import argparse
 import threading
 
-# Configurar la comunicación serial
-port = input("Ingrese el path al puerto USB (e.g., /dev/ttyUSB0): ")
-baud_rate = int(input("Ingrese el baud rate (e.g., 9600): "))
-ser = serial.Serial(port, baud_rate)
+# Configurar los argumentos de línea de comandos
+parser = argparse.ArgumentParser(description="Serial Communication App")
+parser.add_argument("port", help="Path al puerto USB (e.g., /dev/ttyUSB0)")
+parser.add_argument("baud_rate", type=int, help="Baud rate (e.g., 9600)")
+args = parser.parse_args()
+
+ser = serial.Serial(args.port, args.baud_rate)
 
 def send_data():
     try:
@@ -16,40 +20,35 @@ def send_data():
         operation = combo.get()
 
         if 0 <= num1 <= 255 and 0 <= num2 <= 255:
-            # Preparar el primer número con 2 bits MSB 00
-            num1_10bit = (0b00 << 8) | num1
-            num1_high = (num1_10bit >> 8) & 0xFF
-            num1_low = num1_10bit & 0xFF
-            ser.write(bytes([num1_high, num1_low]))
+            # Preparar el primer numero de 8 bits
+            ser.write(bytes([num1]))
             time.sleep(0.001)
 
-            # Preparar el segundo número con 2 bits MSB 01
-            num2_10bit = (0b01 << 8) | num2
-            num2_high = (num2_10bit >> 8) & 0xFF
-            num2_low = num2_10bit & 0xFF
-            ser.write(bytes([num2_high, num2_low]))
+            # Preparar el segundo número de 8 bits
+            ser.write(bytes([num2]))
             time.sleep(0.001)
+
+            print(f"Número 1: {num1} - Número 2: {num2}")
 
             # Preparar el operador con 2 bits MSB 10
             operations = {
-                "ADD": 0b1000000000,
-                "SUB": 0b1000000001,
-                "AND": 0b1000000010,
-                "OR": 0b1000000011,
-                "XOR": 0b1000000100,
-                "SRA": 0b1000000101,
-                "SRL": 0b1000000110,
-                "NOR": 0b1000000111
+                "ADD": 0b000000,
+                "SUB": 0b000001,
+                "AND": 0b000010,
+                "OR": 0b000011,
+                "XOR": 0b000100,
+                "SRA": 0b000101,
+                "SRL": 0b000110,
+                "NOR": 0b000111
             }
-            op_10bit = operations[operation]
-            op_high = (op_10bit >> 8) & 0xFF
-            op_low = op_10bit & 0xFF
-            ser.write(bytes([op_high, op_low]))
+            op_code = operations[operation]
+            print(f"Operación: {operation} - Código de operación: {op_code}")
+            ser.write(bytes([op_code]))
             time.sleep(0.001)
 
-            # Iniciar el hilo para recibir datos
             threading.Thread(target=receive_data).start()
-
+        else:
+            print("Por favor, ingrese números entre 0 y 255.")
     except ValueError as e:
         print("Por favor, ingrese números válidos.")
         print(e)
@@ -58,7 +57,7 @@ def receive_data():
     while True:
         if ser.in_waiting > 0:
             received_data = ser.read(2)
-            received_number = int.from_bytes(received_data, byteorder='big')
+            received_number = int.from_bytes(received_data, byteorder='big', signed = True)
             result_var.set(received_number)
             break
 
@@ -89,3 +88,4 @@ result_label = ttk.Label(frame, textvariable=result_var)
 result_label.grid(column=1, row=4, sticky=(tk.W, tk.E))
 
 root.mainloop()
+
