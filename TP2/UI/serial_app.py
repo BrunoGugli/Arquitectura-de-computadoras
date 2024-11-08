@@ -59,6 +59,7 @@ def receive_data():
             received_data = ser.read(2)
             received_number = int.from_bytes(received_data, byteorder='big', signed = True)
             result_var.set(received_number)
+            print(f"Resultado recibido: {received_number}")
             break
 
 # Configuración de la interfaz gráfica

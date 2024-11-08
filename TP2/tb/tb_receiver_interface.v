@@ -7,14 +7,25 @@ module tb_top_uart_rx();
     reg tb_reset;             // Señal de reset
     reg tb_rx;                // Señal de datos RX
     wire tb_rx_done;          // Indica cuando se completó la recepción
-    wire [9:0] tb_data;       // Dato recibido por el UART (10 bits)
-
+    wire tb_data_valid;       // Señal de datos válidos
+    wire tb_is_on;            // Señal de encendido del sistema
+    wire tb_operand1_ready;   // Señal de operand1 listo
+    wire tb_operand2_ready;   // Señal de operand2 listo
+    wire tb_opcode_ready;     // Señal de opcode listo
+    wire tb_tx;               // Señal de transmisión TX
+    
     // Instancia del módulo top que conecta baud rate gen y UART receiver
     top_uart u_top_uart (
         .i_clk(tb_clk),
         .i_reset(tb_reset),
         .i_rx(tb_rx),
-        .o_rx_done(tb_rx_done)
+        .o_rx_done(tb_rx_done),
+        .o_tx(tb_tx),
+        .o_data_valid(tb_data_valid),
+        .o_is_on(tb_is_on),
+        .operand1_ready(tb_operand1_ready),
+        .operand2_ready(tb_operand2_ready),
+        .opcode_ready(tb_opcode_ready)
     );
 
     // Generación del reloj de 50 MHz (periodo 20 ns)
@@ -54,7 +65,6 @@ module tb_top_uart_rx();
         // Enviamos el opcode de operando 00 -> operando 1
         tb_rx = 0; #(104160);
         tb_rx = 0; #(104160);
-
 
         // Bit de parada (1)
         tb_rx = 1;
@@ -97,7 +107,6 @@ module tb_top_uart_rx();
         #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
 
         // Enviamos los 6 bits de datos (suma -> 6'b100000)
-
         tb_rx = 0; #(104160);
         tb_rx = 0; #(104160);
         tb_rx = 0; #(104160);
@@ -116,17 +125,11 @@ module tb_top_uart_rx();
         #(104160); 
 
         // Esperar la recepción del dato
-        #200000;
+        #240000;
 
         // Finalizamos la simulación
         $finish;
     end
 
-    // Monitor de las señales de salida
-    always @(posedge tb_clk) begin
-        if (tb_rx_done) begin
-            $display("Dato recibido: %b, Tiempo: %0t", tb_data, $time);
-        end
-    end
 
 endmodule
