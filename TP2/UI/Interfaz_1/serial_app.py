@@ -11,7 +11,7 @@ parser.add_argument("port", help="Path al puerto USB (e.g., /dev/ttyUSB0)")
 parser.add_argument("baud_rate", type=int, help="Baud rate (e.g., 9600)")
 args = parser.parse_args()
 
-ser = serial.Serial(args.port, args.baud_rate)
+ser = serial.Serial(args.port, args.baud_rate, timeout=1)
 
 def send_data():
     try:
@@ -44,9 +44,9 @@ def send_data():
             op_code = operations[operation]
             print(f"Operación: {operation} - Código de operación: {op_code}")
             ser.write(bytes([op_code]))
-            #time.sleep(0.001)
+            time.sleep(0.001)
 
-            threading.Thread(target=receive_data).start()
+            receive_data()
         else:
             print("Por favor, ingrese números entre 0 y 255.")
     except ValueError as e:

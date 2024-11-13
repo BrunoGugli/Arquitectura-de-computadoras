@@ -9,11 +9,12 @@ module top_uart #(
     input wire i_rx,            // Serial data input from testbench
     output wire o_rx_done,      // Output flag when reception is done
     output wire o_tx,           // Serial data output to testbench
-    output wire o_data_valid,    // Output data valid
-    output wire o_is_on, // Output flag to indicate if the system is on
+    output wire o_data_valid,   // Output data valid
+    output wire o_is_on,        // Output flag to indicate if the system is on
     output wire operand1_ready, // Output flag to indicate if operand1 is ready
     output wire operand2_ready, // Output flag to indicate if operand2 is ready
-    output wire opcode_ready    // Output flag to indicate if opcode is ready
+    output wire opcode_ready,   // Output flag to indicate if opcode is ready
+    output wire [DATA_BITS-1:0] o_operand1 // Output for operand1
 );
 
     // Set o_is_on to 1
@@ -43,7 +44,7 @@ module top_uart #(
 
     // Baud rate generator instance
     baud_rate_gen #(
-        .clk_freq(50000000),  // 50 MHz clock
+        .clk_freq(100000000),  // 50 MHz clock
         .baud_rate(9600)      // 9600 bps baud rate
     )
     u_baud_rate_gen (
@@ -70,14 +71,14 @@ module top_uart #(
     // Interface ALU-UART instance
     interface_uart_alu #(
         .NB_OP(6),            // 6-bit opcode
-        .NB_DATA(8)          // 8-bit data
+        .NB_DATA(8)           // 8-bit data
     )
     u_interface_alu_uart (
         .i_clk(i_clk),             // Connect to system clock
         .i_reset(i_reset),         // Connect to reset signal
-        .i_data(rx_data),     // Connect the full data from uart_receiver to interface ALU-UART
+        .i_data(rx_data),          // Connect the full data from uart_receiver to interface ALU-UART
         .i_tx_busy(busy),          // Set TX busy to 0 (not using transmission in this example)
-        .i_data_ready(o_rx_done), // Connect the reception done signal to indicate full data ready
+        .i_data_ready(o_rx_done),  // Connect the reception done signal to indicate full data ready
         .o_operand1(operand1),     // Operand 1 from UART interface
         .o_operand2(operand2),     // Operand 2 from UART interface
         .o_opcode(opcode),         // Opcode from UART interface
@@ -86,6 +87,9 @@ module top_uart #(
         .operand2_ready(operand2_ready), // Output flag to indicate if operand2 is ready
         .opcode_ready(opcode_ready)      // Output flag to indicate if opcode is ready
     );
+
+    // Connect operand1 to the output port o_operand1
+    assign o_operand1 = operand1;
 
     // ALU instance
     ALU #(
