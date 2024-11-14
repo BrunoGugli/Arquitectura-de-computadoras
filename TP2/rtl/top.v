@@ -1,5 +1,7 @@
 module top_uart #(
-    parameter NB_OUT = 16
+    parameter NB_OUT = 16,
+    parameter DATA_BITS = 8,
+    parameter STP_BITS_TICKS = 16
 )
 (
     input wire i_clk,           // System clock from testbench
@@ -7,8 +9,12 @@ module top_uart #(
     input wire i_rx,            // Serial data input from testbench
     output wire o_rx_done,      // Output flag when reception is done
     output wire o_tx,           // Serial data output to testbench
-    output wire o_data_valid,    // Output data valid
-    output wire o_is_on // Output flag to indicate if the system is on
+    output wire o_data_valid,   // Output data valid
+    output wire o_is_on,        // Output flag to indicate if the system is on
+    output wire operand1_ready, // Output flag to indicate if operand1 is ready
+    output wire operand2_ready, // Output flag to indicate if operand2 is ready
+    output wire opcode_ready,   // Output flag to indicate if opcode is ready
+    output wire [DATA_BITS-1:0] o_operand1 // Output for operand1
 );
 
     // Set o_is_on to 1
@@ -23,12 +29,12 @@ module top_uart #(
     wire busy; // Wire to indicate when the UART transmitter is busy
 
     // Signals to connect interface_uart_alu and ALU
-    wire [7:0] operand1;
-    wire [7:0] operand2;
+    wire [DATA_BITS-1:0] operand1;
+    wire [DATA_BITS-1:0] operand2;
     wire [5:0] opcode;
 
     // Signal to connect rx and interface
-    wire [9:0] rx_data;
+    wire [DATA_BITS-1:0] rx_data;
 
     // Signal to connect ALU and tx
     wire [NB_OUT-1:0] result;
@@ -38,7 +44,7 @@ module top_uart #(
 
     // Baud rate generator instance
     baud_rate_gen #(
-        .clk_freq(50000000),  // 50 MHz clock
+        .clk_freq(100000000),  // 50 MHz clock
         .baud_rate(9600)      // 9600 bps baud rate
     )
     u_baud_rate_gen (
@@ -48,10 +54,10 @@ module top_uart #(
         .o_baud_tick(baud_tick)  // Output tick to the receiver
     );
 
-    // UART receiver instance (now 10 bits)
+    // UART receiver instance 
     uart_receiver #(
-        .DATA_BITS(10),       // 10-bit data (modified)
-        .STP_BITS_TICKS(16)   // 16 ticks for stop bit
+        .DATA_BITS(DATA_BITS),       // 10-bit data (modified)
+        .STP_BITS_TICKS(STP_BITS_TICKS)   // 16 ticks for stop bit
     )
     u_uart_receiver (
         .i_clk(i_clk),        // Connect to system clock
@@ -65,20 +71,25 @@ module top_uart #(
     // Interface ALU-UART instance
     interface_uart_alu #(
         .NB_OP(6),            // 6-bit opcode
-        .NB_DATA(8),          // 8-bit data
-        .NB_FULL_DATA(10)     // 10-bit full data
+        .NB_DATA(8)           // 8-bit data
     )
     u_interface_alu_uart (
         .i_clk(i_clk),             // Connect to system clock
         .i_reset(i_reset),         // Connect to reset signal
-        .i_full_data(rx_data),     // Connect the full data from uart_receiver to interface ALU-UART
+        .i_data(rx_data),          // Connect the full data from uart_receiver to interface ALU-UART
         .i_tx_busy(busy),          // Set TX busy to 0 (not using transmission in this example)
-        .i_full_data_ready(o_rx_done), // Connect the reception done signal to indicate full data ready
+        .i_data_ready(o_rx_done),  // Connect the reception done signal to indicate full data ready
         .o_operand1(operand1),     // Operand 1 from UART interface
         .o_operand2(operand2),     // Operand 2 from UART interface
         .o_opcode(opcode),         // Opcode from UART interface
-        .o_data_ready(o_data_valid) // Output data ready for ALU processing
+        .o_data_ready(o_data_valid), // Output data ready for ALU processing
+        .operand1_ready(operand1_ready), // Output flag to indicate if operand1 is ready
+        .operand2_ready(operand2_ready), // Output flag to indicate if operand2 is ready
+        .opcode_ready(opcode_ready)      // Output flag to indicate if opcode is ready
     );
+
+    // Connect operand1 to the output port o_operand1
+    assign o_operand1 = operand1;
 
     // ALU instance
     ALU #(

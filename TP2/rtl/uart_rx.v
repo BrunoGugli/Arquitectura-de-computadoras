@@ -1,6 +1,6 @@
 module uart_receiver
 #(
-    parameter DATA_BITS = 10, // Number of data bits (now 10 bits)
+    parameter DATA_BITS = 8, // Now 8 data bits
     parameter STP_BITS_TICKS = 16 // One complete stop bit (16 ticks of oversampling clock)
 )
 (
@@ -9,7 +9,7 @@ module uart_receiver
     input wire i_rx, // Received data
     input wire i_bd_tick, // Baud rate generator tick
     output reg o_rx_done, // Indicates that received data is ready
-    output wire [DATA_BITS-1:0] o_data // Received data (now 10 bits)
+    output wire [DATA_BITS-1:0] o_data // Received data (now 8 bits)
 );
 
 // Local parameters for the state machine
@@ -20,9 +20,9 @@ localparam [1:0] stop = 2'b11;
 
 // Registers for the state machine
 reg [1:0] state, next_state; // Current state and next state
-reg [3:0] tick_counter, next_tick_counter; // Tick counters (7 to start, 15 to data, STP_BITS_TICKS to stop)
-reg [3:0] data_counter, next_data_counter; // Now needs to count from 0 to 9 for 10 bits of data
-reg [DATA_BITS-1:0] data_reg, next_data_reg; // Data register (now 10 bits)
+reg [3:0] tick_counter, next_tick_counter; // Tick counters
+reg [2:0] data_counter, next_data_counter; // Now needs to count from 0 to 7 for 8 bits of data
+reg [DATA_BITS-1:0] data_reg, next_data_reg; // Data register (now 8 bits)
 
 // State machine
 always @(posedge i_clk) begin
@@ -58,7 +58,7 @@ always @(*) begin
 
         start: begin
             if (i_bd_tick == 1) begin
-                if (tick_counter == 7) begin
+                if (tick_counter == (DATA_BITS-1)) begin
                     next_state = data;
                     next_tick_counter = 0;
                     next_data_counter = 0;
@@ -70,7 +70,7 @@ always @(*) begin
 
         data: begin
             if (i_bd_tick == 1) begin
-                if (tick_counter == 15) begin
+                if (tick_counter == (STP_BITS_TICKS-1)) begin
                     next_tick_counter = 0;
                     next_data_reg = {i_rx, data_reg[DATA_BITS-1:1]};
                     if (data_counter == DATA_BITS-1) begin

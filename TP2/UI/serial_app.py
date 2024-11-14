@@ -11,7 +11,7 @@ parser.add_argument("port", help="Path al puerto USB (e.g., /dev/ttyUSB0)")
 parser.add_argument("baud_rate", type=int, help="Baud rate (e.g., 9600)")
 args = parser.parse_args()
 
-ser = serial.Serial(args.port, args.baud_rate)
+ser = serial.Serial(args.port, args.baud_rate, timeout=1)
 
 def send_data():
     try:
@@ -32,21 +32,21 @@ def send_data():
 
             # Preparar el operador con 2 bits MSB 10
             operations = {
-                "ADD": 0b000000,
-                "SUB": 0b000001,
-                "AND": 0b000010,
-                "OR": 0b000011,
-                "XOR": 0b000100,
-                "SRA": 0b000101,
-                "SRL": 0b000110,
-                "NOR": 0b000111
+                "ADD": 0b100000,
+                "SUB": 0b100010,
+                "AND": 0b100100,
+                "OR": 0b100101,
+                "XOR": 0b100110,
+                "SRA": 0b000011,
+                "SRL": 0b000010,
+                "NOR": 0b100111
             }
             op_code = operations[operation]
             print(f"Operación: {operation} - Código de operación: {op_code}")
             ser.write(bytes([op_code]))
             time.sleep(0.001)
 
-            threading.Thread(target=receive_data).start()
+            receive_data()
         else:
             print("Por favor, ingrese números entre 0 y 255.")
     except ValueError as e:
@@ -59,6 +59,7 @@ def receive_data():
             received_data = ser.read(2)
             received_number = int.from_bytes(received_data, byteorder='big', signed = True)
             result_var.set(received_number)
+            print(f"Resultado recibido: {received_number}")
             break
 
 # Configuración de la interfaz gráfica

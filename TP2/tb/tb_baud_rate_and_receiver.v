@@ -7,15 +7,14 @@ module tb_top_uart_rx();
     reg tb_reset;             // Señal de reset
     reg tb_rx;                // Señal de datos RX
     wire tb_rx_done;          // Indica cuando se completó la recepción
-    wire [9:0] tb_data;       // Dato recibido por el UART (10 bits)
+    wire [7:0] tb_data;       // Dato recibido por el UART (8 bits)
 
     // Instancia del módulo top que conecta baud rate gen y UART receiver
     top_uart u_top_uart (
         .i_clk(tb_clk),
         .i_reset(tb_reset),
         .i_rx(tb_rx),
-        .o_rx_done(tb_rx_done),
-        .o_data(tb_data)
+        .o_rx_done(tb_rx_done)
     );
 
     // Generación del reloj de 50 MHz (periodo 20 ns)
@@ -24,7 +23,7 @@ module tb_top_uart_rx();
         forever #10 tb_clk = ~tb_clk;
     end
 
-    // Simulación de una trama UART: bit de inicio (0), 10 bits de datos, bit de parada (1)
+    // Simulación de una trama UART: bit de inicio (0), 8 bits de datos, bit de parada (1)
     initial begin
 
         // Llevamos el sistema a un estado conocido
@@ -37,15 +36,11 @@ module tb_top_uart_rx();
         // Esperamos algunos ciclos antes de enviar datos
         #20
 
-        // Envío de trama UART: 10'b1101010101 (opcode 11, datos 85 en decimal)
+        // Envío de trama UART: 8'b01010101 (datos 85 en decimal)
         // Bit de inicio (0)
         @(posedge tb_clk);
         tb_rx = 0;
         #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
-
-        // Enviamos el opcode de operando 01 -> operando 1
-        tb_rx = 0; #(104160);
-        tb_rx = 1; #(104160);
 
         // Enviamos los 8 bits de datos (0x55 = 8'b01010101)
         tb_rx = 1; #(104160);
@@ -55,6 +50,55 @@ module tb_top_uart_rx();
         tb_rx = 1; #(104160);
         tb_rx = 0; #(104160);
         tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+
+        // Bit de parada (1)
+        tb_rx = 1;
+        #(104160); 
+
+        // Esperar la recepción del dato
+        #200000;
+
+        // Mandamos el segundo dato
+        
+        // Envío de trama UART: 8'b00001010 (datos 10 en decimal)
+        // Bit de inicio (0)
+        @(posedge tb_clk);
+        tb_rx = 0;
+        #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
+
+        // Enviamos los 8 bits de datos (0x55 = 8'b01010101)
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+
+        // Bit de parada (1)
+        tb_rx = 1;
+        #(104160); 
+
+        // Esperar la recepción del dato
+        #200000;
+
+        // Mandamos el opcode de suma 
+        // Envío de trama UART: 8'b00100000 (opcode 32 en decimal)
+        // Bit de inicio (0)
+        @(posedge tb_clk);
+        tb_rx = 0;
+        #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
+
+        // Enviamos los 8 bits de datos (0x55 = 8'b01010101)
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
         tb_rx = 0; #(104160);
 
         // Bit de parada (1)
