@@ -13,7 +13,6 @@ module instruction_fetch(
 wire [31:0] instruccion_from_memory; // se usa para guardar la instruccion que se lee de la memoria
 wire [31:0] address_instruction; // es la direccion que se pasa a la memoria, ya sea el pc o la direccion de escritura
 
-assign address_instruction = i_write_instruction ? i_address : o_pc;
 
 program_counter u_program_counter (
     .i_clk(i_clk),
@@ -45,5 +44,7 @@ always @(posedge i_clk) begin
         end
     end
 end
+
+assign address_instruction = i_write_instruction ? i_address : o_pc;
 
 endmodule

@@ -1,4 +1,4 @@
-module tb_instruction_fetch();
+module tb_fill_and_read_memory();
 
     // Señales para el DUT
     reg i_clk;
@@ -30,55 +30,37 @@ module tb_instruction_fetch();
         forever #5 i_clk = ~i_clk; // Período de 10 unidades de tiempo
     end
 
-    // Prueba
+    // Prueba para llenar y leer la memoria
     initial begin
-
-        // Llevamos el sistema a un estado conocido
-        @ (posedge i_clk); // Esperar un ciclo de reloj
+        // Inicialización
+        @ (posedge i_clk);
         i_reset = 1;
         i_stall = 0;
-        i_halt = 0;
+        i_halt = 1; // Halt activado para evitar la ejecución
         i_write_instruction = 0;
         i_instruction = 32'h0;
         i_address = 32'h0;
 
-        // Escribimos un par de datos en la memoria de instrucciones
-        @ (posedge i_clk); // 
+        // Ciclo de reset
+        @ (posedge i_clk);
         i_reset = 0;
-        i_halt = 1;
+        @ (posedge i_clk);
         i_write_instruction = 1;
 
-        // una instrucción por ciclo en direcciones consecutivas
-        @ (posedge i_clk);
-        i_instruction = 32'h10101010;
-        i_address = 32'h0;
-        @ (posedge i_clk);
-        i_instruction = 32'h12345678;
-        i_address = 32'h4;
-        @ (posedge i_clk);
-        i_instruction = 32'habcdef01;
-        i_address = 32'h8;
-        @ (posedge i_clk);
-        i_instruction = 32'hfedcba98;
-        i_address = 32'hc;
-        @ (posedge i_clk);
-        i_instruction = 32'h0;
-        i_address = 32'h0;
+        for (integer i = 0 ; i <= 40 ; i = i + 4 ) begin
+            @ (posedge i_clk);
+            i_instruction = i+1;
+            i_address = i;
+            $display("Escribiendo instrucción %d en la dirección %d", i_instruction, i_address);
+        end
 
         @ (posedge i_clk);
         i_write_instruction = 0;
+
         @ (posedge i_clk);
         i_halt = 0;
 
-        // Finalizar prueba
-        #200000; 
-        $stop;
     end
-
-    always @ (posedge i_clk) begin
-        $display("PC: %h, Instruction: %h", o_pc, o_instruction);
-    end
-
-
+    
 
 endmodule
