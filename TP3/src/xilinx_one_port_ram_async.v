@@ -1,7 +1,7 @@
 module xilinx_one_port_ram_async
 #(
-    parameter DATA_WIDTH = 12, // 4k direcciones
-    parameter ADDR_WIDTH = 8 // 8 bit data
+    parameter DATA_WIDTH = 8, // 8 bit data
+    parameter ADDR_WIDTH = 12 // 4k direcciones
 )
 (
     input wire i_clk,

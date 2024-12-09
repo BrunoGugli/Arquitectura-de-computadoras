@@ -38,25 +38,25 @@ module tb_fill_and_read_memory();
         i_stall = 0;
         i_halt = 1; // Halt activado para evitar la ejecución
         i_write_instruction = 0;
-        i_instruction = 32'h0;
-        i_address = 32'h0;
+        i_instruction = 0;
+        i_address = 0;
 
         // Ciclo de reset
         @ (posedge i_clk);
         i_reset = 0;
-        @ (posedge i_clk);
         i_write_instruction = 1;
+        for (integer i = 0 ; i < 256 ; i = i + 4 ) begin            
 
-        for (integer i = 0 ; i <= 40 ; i = i + 4 ) begin
+            i_address = i;
             @ (posedge i_clk);
             i_instruction = i+1;
-            i_address = i;
+            @ (posedge i_clk);
             $display("Escribiendo instrucción %d en la dirección %d", i_instruction, i_address);
         end
 
-        @ (posedge i_clk);
-        i_write_instruction = 0;
 
+        i_write_instruction = 0;
+        i_address = 0;
         @ (posedge i_clk);
         i_halt = 0;
 

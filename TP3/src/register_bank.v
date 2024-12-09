@@ -5,9 +5,9 @@ module register_bank #(
     input wire i_clk,
     input wire i_reset,
     input wire i_write_enable,
-    input wire [ADDR_WIDTH-1:0] i_read_reg1, // direccion de rs
-    input wire [ADDR_WIDTH-1:0] i_read_reg2, // direccion de rt
-    input wire [ADDR_WIDTH-1:0] i_write_reg, // direccion de rd
+    input wire [ADDR_WIDTH-1:0] i_read_reg1, // dirección de rs
+    input wire [ADDR_WIDTH-1:0] i_read_reg2, // dirección de rt
+    input wire [ADDR_WIDTH-1:0] i_write_reg, // dirección de rd
     input wire [DATA_WIDTH-1:0] i_data_write, // dato a escribir
     output reg [DATA_WIDTH-1:0] o_data_read1, // dato de rs
     output reg [DATA_WIDTH-1:0] o_data_read2 // dato de rt
@@ -18,7 +18,7 @@ reg [DATA_WIDTH-1:0] registers [2**ADDR_WIDTH-1:0];
 
 // inicializacion de registros
 integer i;
-//segun el libro se lee en el flanco positivo y se escribe en el negativo
+//según el libro se lee en el flanco positivo y se escribe en el negativo
 always @(nedged i_clk) begin
     if(i_reset) begin
         for(i = 0; i < 2**ADDR_WIDTH; i = i + 1) begin

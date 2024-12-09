@@ -10,7 +10,7 @@ module instruction_fetch(
     output wire [31:0] o_pc //esto se usa para guardar la dirección de la instrucción
 );
 
-wire [31:0] instruccion_from_memory; // se usa para guardar la instruccion que se lee de la memoria
+wire [31:0] instruction_from_memory; // se usa para guardar la instruccion que se lee de la memoria
 wire [31:0] address_instruction; // es la direccion que se pasa a la memoria, ya sea el pc o la direccion de escritura
 
 
@@ -32,7 +32,7 @@ xilinx_one_port_ram_async #(
     .i_we(i_write_instruction),
     .i_addr(address_instruction[7:0]), 
     .i_data(i_instruction),
-    .o_data(instruccion_from_memory)
+    .o_data(instruction_from_memory)
 );
 
 always @(posedge i_clk) begin
@@ -40,7 +40,7 @@ always @(posedge i_clk) begin
         o_instruction <= 32'h0;
     end else begin
         if(~i_stall && ~i_halt) begin
-            o_instruction <= instruccion_from_memory;
+            o_instruction <= instruction_from_memory;
         end
     end
 end
