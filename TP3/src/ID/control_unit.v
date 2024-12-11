@@ -6,19 +6,19 @@ module control_unit#(
     input wire [WIDTH-1:0] i_instruction,
 
     // WB signals
-    output wire o_WB_mem_to_reg_ID,
-    output wire o_WB_write_reg_ID,
+    output reg o_WB_mem_to_reg_ID,
+    output reg o_WB_write_reg_ID,
 
     // MEM signals
-    output wire o_MEM_mem_read_ID,
-    output wire o_MEM_mem_write_ID,
-    output wire o_MEM_branch_ID,
-    output wire o_MEM_signed_ID,
+    output reg o_MEM_mem_read_ID,
+    output reg o_MEM_mem_write_ID,
+    output reg o_MEM_branch_ID,
+    output reg o_MEM_signed_ID,
 
     // EX signals
-    output wire o_EX_reg_dest_ID,
-    output wire [1:0] o_EX_ALU_op_ID,
-    output wire o_EX_ALU_src_ID,
+    output reg o_EX_reg_dest_ID,
+    output reg [1:0] o_EX_ALU_op_ID,
+    output reg o_EX_ALU_src_ID,
 
 );
     // instrucciones tipo R (function field)
