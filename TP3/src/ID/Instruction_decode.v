@@ -13,7 +13,6 @@ module instruction_decode (
 
     //cosas del detect hazard
     input wire i_stall,
-    input wire i_halt,
 
     // cosas que van hacia la etapa de EX
     output reg [31:0] o_pc, // direccion de la instruccion
@@ -26,6 +25,8 @@ module instruction_decode (
     output reg [31:0] o_inmediato, // inmediato
     output reg [ 5:0] o_opcode, // codigo de operacion para el tipo de instruccion
     output reg [ 4:0] o_shamt // indica el desplazamiento de bits
+
+
 
 
 
