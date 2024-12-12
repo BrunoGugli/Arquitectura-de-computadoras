@@ -28,7 +28,7 @@ module instruction_decode (
     output reg [ 4:0] o_shamt // indica el desplazamiento de bits
 
     // WB control signals
-    output reg o_WB_mem_to_reg_ID,
+    output reg o_WB_mem_to_reg_ID, // 0 -> MEM to reg, 1 -> ALU to reg
     output reg o_WB_write_reg_ID,
 
     // MEM control signals
@@ -54,7 +54,11 @@ module instruction_decode (
     wire [31:0] inmediato;
     wire [5:0] funct;
 
-    localparam R_TYPE = 6'b000000;
+    localparam NOP = 32'h00000000;
+    localparam R_TYPE_OPCODE = 6'b000000;
+    localparam JAL_OPCODE = 6'b000011;
+    localparam JALR_FUNCT = 6'b001001;
+    localparam JR_FUNCT = 6'b001000;
 
     register_bank #(
         .DATA_WIDTH(32),
@@ -75,11 +79,43 @@ module instruction_decode (
     // WB signals
     always @(posedge i_clk) begin
         if(i_reset) begin
-            o_WB_mem_to_reg_ID <= 0;
-            o_WB_write_reg_ID <= 0;
+            o_WB_mem_to_reg_ID <= 1'b0;
+            o_WB_write_reg_ID <= 1'b0;
         end else begin
-            if (!halt)
+            if(~i_halt) begin
+                if(i_stall || i_instruction == NOP) begin
+                    o_WB_mem_to_reg_ID <= 1'b0;
+                    o_WB_write_reg_ID <= 1'b0;
+                end else begin
+                    if (opcode == R_TYPE_OPCODE || opcode == JAL_OPCODE) begin // Tipo_R y JAL escriben registro
+                        if (funct == JR_FUNCT) begin // JR no escribe registro
+                            o_WB_mem_to_reg_ID <= 1'b1;
+                            o_WB_write_reg_ID <= 1'b0;
+                        end else begin
+                            o_WB_mem_to_reg_ID <= 1'b1;
+                            o_WB_write_reg_ID <= 1'b1;
+                        end
+                    end else if(opcode[5:3] == 3'b100) begin // Load instructions
+                        o_WB_mem_to_reg_ID <= 1'b0;
+                        o_WB_write_reg_ID <= 1'b1;
+                    end else if(opcode[5:3] == 3'b001) begin // Inmediato instructions
+                        o_WB_mem_to_reg_ID <= 1'b1;
+                        o_WB_write_reg_ID <= 1'b1;
+                    end else begin // store or branch instructions
+                        o_WB_mem_to_reg_ID <= 1'b1;
+                        o_WB_write_reg_ID <= 1'b0;
+                    end
+                end
+            end
         end
+    end
+
+    // MEM signals
+    // output reg o_MEM_mem_read_ID,
+    // output reg o_MEM_mem_write_ID,
+    // output reg o_MEM_signed_ID,
+    always @(posedge i_clk) begin
+        
     end
 
     assign opcode = i_instruction[31:26];
