@@ -31,9 +31,12 @@ end
 
 always @(*) begin
 
+    // hazard de datos: lectura despues de escritura por sentencia load
     if (i_id_ex_memread && (i_id_ex_rt == i_if_id_rs || i_id_ex_rt == i_if_id_rt)) begin
         o_stall = 1;
     end
+
+    // hazard de control: salto beq y bne
     
 end
 
