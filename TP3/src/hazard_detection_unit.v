@@ -7,21 +7,18 @@ module hazard_detection_unit (
 
     input wire [1:0] i_jumptype, // tipo de salto
 
-    // señales para hazards de datos
+    // señales para hazards de control
     input wire [4:0] i_ex_rd, // numero rd de la etapa de ejecución
     input wire [4:0] i_mem_rd, // numero rd de la etapa de memoria
     input wire [4:0] i_wb_rd, // numero rd de la etapa de write back
 
     // señales de control
-    input wire i_ex_wb_regwrite, // señal de escritura de registro de la etapa de ejecución
-    input wire i_mem_wb_regwrite, // señal de escritura de registro de la etapa de memoria
-    input wire i_id_ex_regwrite, // señal de escritura de registro de la etapa de ejecución
+    input wire i_wb_ex_regwrite, // señal de escritura de registro de la etapa de ejecución
+    input wire i_wb_mem_regwrite, // señal de escritura de registro de la etapa de memoria
+    input wire i_wb_wb_regwrite, // señal de escritura de registro de la etapa de ejecución
 
     output reg o_stall, // señal de stall
 
-    output reg PCWrite, // señal de escritura de PC
-    output reg IF_IDWrite, // señal de escritura de IF_ID
-    output reg mux_control_to_zero // señal de control de mux para poner en 0 las señales de control
 );
 
 initial begin
@@ -36,9 +33,29 @@ always @(*) begin
         o_stall = 1;
     end
 
-    // hazard de control: salto beq y bne
-    
+    // hazard de control: salto beq y bne, hasta no tener el resultado de la comparación no se sabe 
+    // si se debe saltar o no
+    else if (i_jumptype == 2'b01) begin
+        if ( (i_wb_ex_regwrite && i_if_id_rs == i_ex_rd) ||
+             (i_wb_mem_regwrite && i_if_id_rs == i_mem_rd) ||
+             (i_wb_wb_regwrite && i_if_id_rs == i_wb_rd) ||
+             (i_wb_ex_regwrite && i_if_id_rt == i_ex_rd) ||
+             (i_wb_mem_regwrite && i_if_id_rt == i_mem_rd) ||
+             (i_wb_wb_regwrite && i_if_id_rt == i_wb_rd) 
+            ) begin
+                o_stall = 1;
+        end
+    end else if (i_jumptype == 2'b10) begin
+    end
 end
+
+        
+    
+
+        
+        
+    
+
 
 
 endmodule
