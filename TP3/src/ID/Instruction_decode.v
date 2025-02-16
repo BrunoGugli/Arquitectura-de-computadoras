@@ -3,8 +3,8 @@ module instruction_decode (
     // cosas que vienen del Instruction Fetch
     input wire i_clk,
     input wire i_reset,
-    input reg [31:0] i_instruction,
-    input reg [31:0] i_pc,
+    input wire [31:0] i_instruction,
+    input wire [31:0] i_pc,
 
     // cosas que van hacia el Register Bank y que vienen de la etapa de write back
     input wire i_wb_write_enable, // habilita la escritura en el banco de registros
@@ -25,7 +25,7 @@ module instruction_decode (
     output reg [ 5:0] o_funct, // codigo de operacion especifico para sumas, restas, etc
     output reg [31:0] o_inmediato, // inmediato
     output reg [ 5:0] o_opcode, // codigo de operacion para el tipo de instruccion
-    output reg [ 4:0] o_shamt // indica el desplazamiento de bits
+    output reg [ 4:0] o_shamt, // indica el desplazamiento de bits
 
     // WB control signals
     output reg o_WB_mem_to_reg_ID, // 0 -> MEM to reg, 1 -> ALU to reg
@@ -47,7 +47,7 @@ module instruction_decode (
     output reg [31:0] o_jump_address,
     output reg [1:0] o_reg_in_jump, // 00 -> not jump, 01 -> jump with rs and rt, 10 -> jump with rs only
 
-    output wire o_halt,
+    output wire o_halt
 );
 
     wire [5:0] opcode;
@@ -67,7 +67,8 @@ module instruction_decode (
     localparam BEQ_OPCODE = 6'b000100;
     localparam BNE_OPCODE = 6'b000101;
     localparam J_OPCODE = 6'b000010;
-
+    
+    /*
     register_bank #(
         .DATA_WIDTH(32),
         .ADDR_WIDTH(5)
@@ -82,6 +83,7 @@ module instruction_decode (
         .o_data_read1(RA),
         .o_data_read2(RB)
     );
+    */
 
 
     // WB signals
@@ -214,7 +216,7 @@ module instruction_decode (
                 end
 
                 if(opcode == JAL_OPCODE) begin
-                    o_rt <= 5'b11111 // register 31
+                    o_rt <= 5'b11111; // register 31
                 end else begin
                     o_rt <= rt;
                 end
@@ -277,7 +279,7 @@ module instruction_decode (
     assign rs = i_instruction[25:21];
     assign rt = i_instruction[20:16];
     assign funct = i_instruction[5:0];
-    assign inmediato = {16{i_instruction[15]}, i_instruction[15:0]};
+    assign inmediato = {{16{i_instruction[15]}}, i_instruction[15:0]};
     assign o_halt = (i_instruction == HALT);
 
 endmodule
