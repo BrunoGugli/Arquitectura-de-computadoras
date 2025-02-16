@@ -7,9 +7,9 @@ module instruction_decode (
     input wire [31:0] i_pc,
 
     // cosas que van hacia el Register Bank y que vienen de la etapa de write back
-    input wire i_wb_write_enable, // habilita la escritura en el banco de registros
-    input wire [4:0] i_wb_write_addr, // direccion de registro a escribir
-    input wire [31:0] i_wb_write_data, // dato a escribir en el registro
+    input wire i_ctl_wb_reg_write_wb, // habilita la escritura en el banco de registros
+    input wire [4:0] i_write_addr_wb, // direccion de registro a escribir
+    input wire [31:0] i_write_data_wb, // dato a escribir en el registro
 
     //cosas del detect hazard
     input wire i_stall,
@@ -28,19 +28,19 @@ module instruction_decode (
     output reg [ 4:0] o_shamt, // indica el desplazamiento de bits
 
     // WB control signals
-    output reg o_WB_mem_to_reg_ID, // 0 -> MEM to reg, 1 -> ALU to reg
-    output reg o_WB_write_reg_ID,
+    output reg o_ctl_WB_mem_to_reg_ID, // 0 -> MEM to reg, 1 -> ALU to reg
+    output reg o_ctl_WB_reg_write_ID,
 
     // MEM control signals
-    output reg o_MEM_mem_read_ID,
-    output reg o_MEM_mem_write_ID,
-    output reg o_MEM_signed_ID,
+    output reg o_ctl_MEM_mem_read_ID,
+    output reg o_ctl_MEM_mem_write_ID,
+    output reg o_ctl_MEM_unsigned_ID,
     output reg [1:0] o_MEM_data_width_ID, // 00 -> byte, 01 -> halfword, 11 -> word
 
     // EX control signals
-    output reg o_EX_reg_dest_ID,
-    output reg [1:0] o_EX_ALU_op_ID,
-    output reg o_EX_ALU_src_ID,
+    output reg o_ctl_EX_reg_dest_ID,
+    output reg [1:0] o_ctl_EX_ALU_op_ID,
+    output reg o_ctl_EX_ALU_src_ID,
 
     // jumps
     output reg o_jump,
@@ -53,8 +53,8 @@ module instruction_decode (
     wire [5:0] opcode;
     wire [4:0] rs;
     wire [4:0] rt;
-    wire [4:0] RA;
-    wire [4:0] RB;
+    wire [31:0] RA;
+    wire [31:0] RB;
     wire [31:0] inmediato;
     wire [5:0] funct;
 
@@ -75,11 +75,11 @@ module instruction_decode (
     ) u_register_bank (
         .i_clk(i_clk),
         .i_reset(i_reset),
-        .i_write_enable(i_wb_write_enable),
+        .i_write_enable(i_ctl_wb_reg_write_wb),
         .i_read_reg1(rs),
         .i_read_reg2(rt),
-        .i_write_reg(i_wb_write_addr),
-        .i_data_write(i_wb_write_data),
+        .i_write_reg(i_write_addr_wb),
+        .i_data_write(i_write_data_wb),
         .o_data_read1(RA),
         .o_data_read2(RB)
     );
@@ -89,31 +89,30 @@ module instruction_decode (
     // WB signals
     always @(posedge i_clk) begin
         if(i_reset) begin
-            o_WB_mem_to_reg_ID <= 1'b0;
-            o_WB_write_reg_ID <= 1'b0;
+            o_ctl_WB_mem_to_reg_ID <= 1'b0;
+            o_ctl_WB_reg_write_ID <= 1'b0;
         end else begin
             if(~i_halt) begin
                 if(i_stall || i_instruction == NOP) begin
-                    o_WB_mem_to_reg_ID <= 1'b0;
-                    o_WB_write_reg_ID <= 1'b0;
+                    o_ctl_WB_mem_to_reg_ID <= 1'b0;
+                    o_ctl_WB_reg_write_ID <= 1'b0;
                 end else begin
-                    if (opcode == R_TYPE_OPCODE || opcode == JAL_OPCODE) begin // Tipo_R y JAL escriben registro
+                    if (opcode == R_TYPE_OPCODE) begin // Tipo_R
+                        o_ctl_WB_mem_to_reg_ID <= 1'b1;
                         if (funct == JR_FUNCT) begin // JR no escribe registro
-                            o_WB_mem_to_reg_ID <= 1'b1;
-                            o_WB_write_reg_ID <= 1'b0;
+                            o_ctl_WB_reg_write_ID <= 1'b0;
                         end else begin
-                            o_WB_mem_to_reg_ID <= 1'b1;
-                            o_WB_write_reg_ID <= 1'b1;
+                            o_ctl_WB_reg_write_ID <= 1'b1;
                         end
                     end else if(opcode[5:3] == 3'b100) begin // Load instructions
-                        o_WB_mem_to_reg_ID <= 1'b0;
-                        o_WB_write_reg_ID <= 1'b1;
-                    end else if(opcode[5:3] == 3'b001) begin // Inmediato instructions
-                        o_WB_mem_to_reg_ID <= 1'b1;
-                        o_WB_write_reg_ID <= 1'b1;
+                        o_ctl_WB_mem_to_reg_ID <= 1'b0;
+                        o_ctl_WB_reg_write_ID <= 1'b1;
+                    end else if(opcode[5:3] == 3'b001 || opcode == JAL_OPCODE) begin // Inmediato instructions y JAL escribe a registro
+                        o_ctl_WB_mem_to_reg_ID <= 1'b1;
+                        o_ctl_WB_reg_write_ID <= 1'b1;
                     end else begin // store or branch instructions
-                        o_WB_mem_to_reg_ID <= 1'b1;
-                        o_WB_write_reg_ID <= 1'b0;
+                        o_ctl_WB_mem_to_reg_ID <= 1'b1;
+                        o_ctl_WB_reg_write_ID <= 1'b0;
                     end
                 end
             end
@@ -123,27 +122,27 @@ module instruction_decode (
     // MEM signals
     always @(posedge i_clk) begin
         if(i_reset) begin
-            o_MEM_mem_read_ID <= 1'b0;
-            o_MEM_mem_write_ID <= 1'b0;
-            o_MEM_signed_ID <= 1'b0;
-            o_MEM_data_width_ID <= 2'b00;
+            o_ctl_MEM_mem_read_ID <= 1'b0;
+            o_ctl_MEM_mem_write_ID <= 1'b0;
+            o_ctl_MEM_unsigned_ID <= 1'b0;
+            o_ctl_MEM_data_width_ID <= 2'b00;
         end else begin
             if(~i_halt) begin
                 if(i_stall || i_instruction == NOP) begin
-                    o_MEM_mem_read_ID <= 1'b0;
-                    o_MEM_mem_write_ID <= 1'b0;
-                    o_MEM_signed_ID <= 1'b0;
-                    o_MEM_data_width_ID <= 2'b00;
+                    o_ctl_MEM_mem_read_ID <= 1'b0;
+                    o_ctl_MEM_mem_write_ID <= 1'b0;
+                    o_ctl_MEM_unsigned_ID <= 1'b0;
+                    o_ctl_MEM_data_width_ID <= 2'b00;
                 end else begin
                     if(opcode[5] == 1'b1) begin // Load or store instructions
-                        o_MEM_signed_ID <= ~opcode[2];
-                        o_MEM_data_width_ID <= opcode[1:0];
+                        o_ctl_MEM_unsigned_ID <= opcode[2];
+                        o_ctl_MEM_data_width_ID <= opcode[1:0];
                         if(opcode[3] == 1'b1) begin // Store
-                            o_MEM_mem_read_ID <= 1'b0;
-                            o_MEM_mem_write_ID <= 1'b1;
+                            o_ctl_MEM_mem_read_ID <= 1'b0;
+                            o_ctl_MEM_mem_write_ID <= 1'b1;
                         end else begin // Load
-                            o_MEM_mem_read_ID <= 1'b1;
-                            o_MEM_mem_write_ID <= 1'b0;
+                            o_ctl_MEM_mem_read_ID <= 1'b1;
+                            o_ctl_MEM_mem_write_ID <= 1'b0;
                         end
                     end else begin // Any other instruction
                         o_MEM_mem_read_ID <= 1'b0;
@@ -157,33 +156,33 @@ module instruction_decode (
     // EX signals
     always @(posedge i_clk) begin
         if(i_reset) begin
-            o_EX_reg_dest_ID <= 1'b0;
-            o_EX_ALU_op_ID <= 2'b00;
-            o_EX_ALU_src_ID <= 1'b0;
+            o_ctl_EX_reg_dest_ID <= 1'b0;
+            o_ctl_EX_ALU_op_ID <= 2'b00;
+            o_ctl_EX_ALU_src_ID <= 1'b0;
         end else begin
             if(~i_halt) begin
                 if(i_stall || i_instruction == NOP) begin
-                    o_EX_reg_dest_ID <= 1'b0;
-                    o_EX_ALU_op_ID <= 2'b00;
-                    o_EX_ALU_src_ID <= 1'b0;
+                    o_ctl_EX_reg_dest_ID <= 1'b0;
+                    o_ctl_EX_ALU_op_ID <= 2'b00;
+                    o_ctl_EX_ALU_src_ID <= 1'b0;
                 end else begin
                     if(opcode == R_TYPE_OPCODE) begin // R_TYPE
-                        o_EX_reg_dest_ID <= 1'b1; // dest register is rd
-                        o_EX_ALU_src_ID <= 1'b0; // ALU source is register
+                        o_ctl_EX_reg_dest_ID <= 1'b1; // dest register is rd
+                        o_ctl_EX_ALU_src_ID <= 1'b0; // ALU source is register
                         if(funct == JALR_FUNCT) begin
-                            o_EX_ALU_op_ID <= 2'b00; // ALU operation is add
+                            o_ctl_EX_ALU_op_ID <= 2'b00; // ALU operation is add
                         end else begin
-                            o_EX_ALU_op_ID <= 2'b10; // ALU operation is func field
+                            o_ctl_EX_ALU_op_ID <= 2'b10; // ALU operation is func field
                         end
                     end else begin
-                        o_EX_reg_dest_ID <= 1'b0; // dest register is rt
-                        o_EX_ALU_src_ID <= 1'b1; // ALU source is inmediato
-                        if(opcode[5:3] == 3'b001) begin // Inmediato instructions
-                            o_EX_ALU_op_ID <= 2'b11; 
+                        o_ctl_EX_reg_dest_ID <= 1'b0; // dest register is rt
+                        o_ctl_EX_ALU_src_ID <= 1'b1; // ALU source is inmediato
+                        if(opcode[5:3] == 3'b001) begin // Inmediato logic instructions
+                            o_ctl_EX_ALU_op_ID <= 2'b11; 
                         end else if(opcode[5] == 1'b1 || opcode == JAL_OPCODE) begin // Load or store instructions
-                            o_EX_ALU_op_ID <= 2'b00; // ALU operation is add
+                            o_ctl_EX_ALU_op_ID <= 2'b00; // ALU operation is add
                         end else begin
-                            o_EX_ALU_op_ID <= 2'b01;
+                            o_ctl_EX_ALU_op_ID <= 2'b01;
                         end
                     end
                 end
@@ -207,7 +206,7 @@ module instruction_decode (
             if(~i_halt) begin
                 if (opcode == JAL_OPCODE || (opcode == R_TYPE_OPCODE && funct == JALR_FUNCT)) begin
                     o_RA <= i_pc;
-                    o_rs <= 5'b00000; // rs is not used
+                    o_rs <= 5'b00000; // rs is not used <- ver bien esto pq JALR sí usa rs segun el manual del ISA, el que no usa es el rt
                     o_RB <= 4;
                 end else begin
                     o_RA <= RA;
@@ -216,7 +215,7 @@ module instruction_decode (
                 end
 
                 if(opcode == JAL_OPCODE) begin
-                    o_rt <= 5'b11111; // register 31
+                    o_rt <= 5'b11111; // register 31 <- y acá debería ser el rd, no el rt, segun el manual del ISA
                 end else begin
                     o_rt <= rt;
                 end
@@ -249,7 +248,7 @@ module instruction_decode (
                 o_reg_in_jump = 2'b01;
                 if(RA != RB) begin
                     o_jump = 1'b1;
-                    o_jump_address = i_pc + (inmediato << 2) + 4; // inmediato aligned
+                    o_jump_address = i_pc + (inmediato << 2) + 4; // inmediato aligned <- hacerle tb a esto pq no se si va el +4 ahi
                 end
             end
 
@@ -279,7 +278,7 @@ module instruction_decode (
     assign rs = i_instruction[25:21];
     assign rt = i_instruction[20:16];
     assign funct = i_instruction[5:0];
-    assign inmediato = {{16{i_instruction[15]}}, i_instruction[15:0]};
+    assign inmediato = {{16{i_instruction[15]}}, i_instruction[15:0]}; // Inmediato con extension de signo
     assign o_halt = (i_instruction == HALT);
 
 endmodule
