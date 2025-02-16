@@ -3,9 +3,9 @@ module instruction_fetch(
     input wire i_reset,
     input wire i_stall,
     input wire i_halt,
-    input wire i_write_instruction, // para escribir en la memoria de instrucciones
-    input wire [31:0] i_instruction, // instrucción a escribir
-    input wire [31:0] i_address, // dirección dónde escribir la instrucción
+    input wire i_write_instruction_flag, // para escribir en la memoria de instrucciones
+    input wire [31:0] i_instruction_to_write, // instrucción a escribir
+    input wire [31:0] i_address_to_write_inst, // dirección dónde escribir la instrucción
     output reg [31:0] o_instruction, // este es el latch que se usa para guardar la instruccion
     output wire [31:0] o_pc //esto se usa para guardar la dirección de la instrucción
 );
@@ -26,12 +26,12 @@ program_counter u_program_counter (
 
 xilinx_one_port_ram_async #(
     .DATA_WIDTH(8), // 1 byte por posicion de memoria
-    .ADDR_WIDTH(8) // 256 direcciones de memoria, mentenemos el byte-adreasable en multiplos de 4
+    .ADDR_WIDTH(8) // 256 direcciones de memoria, mentenemos el byte-adreasable en multiplos de 4 ***** CAMBIAR ESTO DESPUES, ESTA ASI PARA PRUEBAS EN EL VIVADO *****
 ) instruccion_mem (
     .i_clk(i_clk),
-    .i_we(i_write_instruction),
+    .i_we(i_write_instruction_flag),
     .i_addr(address_instruction[7:0]), 
-    .i_data(i_instruction),
+    .i_data(i_instruction_to_write),
     .o_data(instruction_from_memory)
 );
 
@@ -45,6 +45,6 @@ always @(posedge i_clk) begin
     end
 end
 
-assign address_instruction = i_write_instruction ? i_address : o_pc;
+assign address_instruction = i_write_instruction_flag ? i_address_to_write_inst : o_pc;
 
 endmodule
