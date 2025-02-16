@@ -67,7 +67,8 @@ module instruction_decode (
     localparam BEQ_OPCODE = 6'b000100;
     localparam BNE_OPCODE = 6'b000101;
     localparam J_OPCODE = 6'b000010;
-
+    
+    /*
     register_bank #(
         .DATA_WIDTH(32),
         .ADDR_WIDTH(5)
@@ -82,6 +83,7 @@ module instruction_decode (
         .o_data_read1(RA),
         .o_data_read2(RB)
     );
+    */
 
 
     // WB signals
