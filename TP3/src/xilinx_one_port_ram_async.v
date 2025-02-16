@@ -16,7 +16,7 @@ module xilinx_one_port_ram_async
 
     always @(posedge i_clk) begin
         if(i_we) begin
-            mem[i_addr] <= i_data[31:24];
+            mem[i_addr] <= i_data[31:24]; // tiene un endianness big
             mem[i_addr+1] <= i_data[23:16];
             mem[i_addr+2] <= i_data[15:8];
             mem[i_addr+3] <= i_data[7:0];
