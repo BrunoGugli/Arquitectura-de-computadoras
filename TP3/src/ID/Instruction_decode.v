@@ -204,22 +204,22 @@ module instruction_decode (
             if(~i_halt) begin
                 if (opcode == JAL_OPCODE || (opcode == R_TYPE_OPCODE && funct == JALR_FUNCT)) begin
                     o_RA <= i_pc;
-                    o_rs <= 5'b00000; // rs is not used <- ver bien esto pq JALR sí usa rs segun el manual del ISA, el que no usa es el rt
+                    o_rt <= 5'b00000; // rt is not used
                     o_RB <= 4;
                 end else begin
                     o_RA <= RA;
-                    o_rs <= rs;
+                    o_rt <= rt;
                     o_RB <= RB;
                 end
 
                 if(opcode == JAL_OPCODE) begin
-                    o_rt <= 5'b11111; // register 31 <- y acá debería ser el rd, no el rt, segun el manual del ISA
+                    o_rd <= 5'b11111; // register 31
                 end else begin
-                    o_rt <= rt;
+                    o_rd <= i_instruction[15:11];
                 end
 
                 o_opcode <= opcode;
-                o_rd <= i_instruction[15:11];
+                o_rs <= rs;
                 o_shamt <= i_instruction[10:6];
                 o_funct <= funct;
                 o_inmediato <= inmediato;
