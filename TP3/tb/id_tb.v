@@ -1,63 +1,62 @@
-`timescale 1ps/1ps
+`timescale 1ns / 1ps
 
-module tb_instruction_decode();
+module instruction_decode_tb;
 
     reg i_clk;
     reg i_reset;
     reg [31:0] i_instruction;
     reg [31:0] i_pc;
 
-    // inputs del register bank 
-    reg i_id_write_enable_wb;
-    reg [4:0] i_id_write_addr;
-    reg [31:0] i_id_write_data;
+    // cosas hacia el register bank
+    reg i_ctl_wb_reg_write_wb;
+    reg [4:0] i_write_addr_wb;
+    reg [31:0] i_write_data_wb;
 
-    // hazard detection unit
+    // cosas del detect hazard
     reg i_stall;
     reg i_halt;
 
-    // outputs del instruction decode
-    wire [31:0] o_RA;
-    wire [31:0] o_RB;
-    wire [31:0] o_rs;    
-    wire [31:0] o_rt;
-    wire [31:0] o_rd;
-    wire [5:0] o_funct;
-    wire [5:0] o_opcode;
-    wire [5:0] o_shamt;
-    wire [31:0] o_immediate;
-
-    // WB control signals
-    wire o_WB_mem_to_reg_ID;
-    wire o_WB_write_reg_ID;
+    // cosas que van hacia la etapa de EX
+    wire [31:0] o_RA; // dato de rs
+    wire [31:0] o_RB; // dato de rt
+    wire [ 4:0] o_rs; // direccion de rs
+    wire [ 4:0] o_rt; // direccion de rt
+    wire [ 4:0] o_rd; // direccion de rd
+    wire [ 5:0] o_funct; // codigo de operacion especifico para sumas; restas; etc
+    wire [31:0] o_inmediato; // inmediato
+    wire [ 5:0] o_opcode; // codigo de operacion para el tipo de instruccion
+    wire [ 4:0] o_shamt; // indica el desplazamiento de bitswire
     
+    // WB control signals
+    wire o_ctl_WB_mem_to_reg_ID; // 0 -> MEM to reg; 1 -> ALU to reg
+    wire o_ctl_WB_reg_write_ID;
+
     // MEM control signals
-    wire o_MEM_mem_read_ID;
-    wire o_MEM_mem_write_ID;
-    wire o_MEM_signed_ID;
-    wire [1:0] o_MEM_data_width_ID;
+    wire o_ctl_MEM_mem_read_ID;
+    wire o_ctl_MEM_mem_write_ID;
+    wire o_ctl_MEM_unsigned_ID;
+    wire [1:0] o_ctl_MEM_data_width_ID; // 00 -> byte; 01 -> halfword; 11 -> word
 
     // EX control signals
-    wire o_EX_reg_dest_ID;
-    wire [1:0] o_EX_alu_op_ID;
-    wire o_EX_alu_src_ID;
+    wire o_ctl_EX_reg_dest_ID;
+    wire [1:0] o_ctl_EX_ALU_op_ID;
+    wire o_ctl_EX_ALU_src_ID;
 
-    // Jump control signals
+    // jumps
     wire o_jump;
-    wire [31:0] o_jump_address; //porque se calcula en  ID
-    wire [1:0] o_reg_in_jump;
-    
+    wire [31:0] o_jump_address;
+    wire [1:0] o_reg_in_jump; // 00 -> not jump; 01 -> jump with rs and rt; 10 -> jump with rs only
+
     wire o_halt;
 
-    // instanciacion del modulo
-    tb_instruction_decode uut (
+    instruction_decode uut (
         .i_clk(i_clk),
         .i_reset(i_reset),
         .i_instruction(i_instruction),
         .i_pc(i_pc),
-        .i_id_write_enable_wb(i_id_write_enable_wb),
-        .i_id_write_addr(i_id_write_addr),
-        .i_id_write_data(i_id_write_data),
+        .i_ctl_wb_reg_write_wb(i_ctl_wb_reg_write_wb),
+        .i_write_addr_wb(i_write_addr_wb),
+        .i_write_data_wb(i_write_data_wb),
         .i_stall(i_stall),
         .i_halt(i_halt),
         .o_RA(o_RA),
@@ -66,18 +65,18 @@ module tb_instruction_decode();
         .o_rt(o_rt),
         .o_rd(o_rd),
         .o_funct(o_funct),
-        .o_inmediato(o_immediate),
+        .o_inmediato(o_inmediato),
         .o_opcode(o_opcode),
         .o_shamt(o_shamt),
-        .o_WB_mem_to_reg_ID(o_WB_mem_to_reg_ID),
-        .o_WB_write_reg_ID(o_WB_write_reg_ID),
-        .o_MEM_mem_read_ID(o_MEM_mem_read_ID),
-        .o_MEM_mem_write_ID(o_MEM_mem_write_ID),
-        .o_MEM_signed_ID(o_MEM_signed_ID),
-        .o_MEM_data_width_ID(o_MEM_data_width_ID),
-        .o_EX_reg_dest_ID(o_EX_reg_dest_ID),
-        .o_EX_alu_op_ID(o_EX_alu_op_ID),
-        .o_EX_alu_src_ID(o_EX_alu_src_ID),
+        .o_ctl_WB_mem_to_reg_ID(o_ctl_WB_mem_to_reg_ID),
+        .o_ctl_WB_reg_write_ID(o_ctl_WB_reg_write_ID),
+        .o_ctl_MEM_mem_read_ID(o_ctl_MEM_mem_read_ID),
+        .o_ctl_MEM_mem_write_ID(o_ctl_MEM_mem_write_ID),
+        .o_ctl_MEM_unsigned_ID(o_ctl_MEM_unsigned_ID),
+        .o_ctl_MEM_data_width_ID(o_ctl_MEM_data_width_ID),
+        .o_ctl_EX_reg_dest_ID(o_ctl_EX_reg_dest_ID),
+        .o_ctl_EX_ALU_op_ID(o_ctl_EX_ALU_op_ID),
+        .o_ctl_EX_ALU_src_ID(o_ctl_EX_ALU_src_ID),
         .o_jump(o_jump),
         .o_jump_address(o_jump_address),
         .o_reg_in_jump(o_reg_in_jump),
@@ -91,37 +90,40 @@ module tb_instruction_decode();
     end
 
     initial begin
-
-        // Inicializar señales
+        
+        // Incialización de señales
         @ (posedge i_clk);
         i_reset = 1;
         i_instruction = 0;
         i_pc = 0;
-        i_id_write_enable_wb = 0;
-        i_id_write_addr = 0;
-        i_id_write_data = 0;
+        i_ctl_wb_reg_write_wb = 0;
+        i_write_addr_wb = 0;
+        i_write_data_wb = 0;
         i_stall = 0;
         i_halt = 0;
 
         // Salgo del reset
-        @ (posedge i_clk);
+        #10;
         i_reset = 0;
 
-        // Prueba de instrucciones
+        //--Incialización de registros--
+        #10;
+        i_ctl_wb_reg_write_wb = 1;
+        i_write_addr_wb = 5'd1;
+        i_write_data_wb = 32'h00000010; // $1 = 0x10 -> 16
+        
+        #10;
+        i_ctl_wb_reg_write_wb = 0;
+        
+        // Test 1: Load word ( LW $2, 4($1) ) 
+        i_instruction = 32'b10001100001000100000000000000100;
+        i_pc = 32'h00000004;
 
-        // Test 1: Instrucción tipo R ( add $t0, $t1, $t2 )
-        i_instruction = 0'b00000001001010100100000000100000;
-
+        #1000;
     end
 
 
 
-
-
-    
-
-
-
-
-
 endmodule
+
+
