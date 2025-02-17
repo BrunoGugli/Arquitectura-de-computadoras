@@ -143,11 +143,7 @@ module instruction_exec (
             o_reg_dest <= 5'b00000;
         end else if(~i_halt) begin
             // reg dest
-            if(i_ctl_EX_reg_dest_EX) begin
-                o_reg_dest <= i_rd;
-            end else begin
-                o_reg_dest <= i_rt;
-            end
+            o_reg_dest <= i_ctl_EX_reg_dest_EX ? i_rd : i_rt;
 
             // Alu result
             o_ALU_result <= ALU_result_wire;
@@ -177,5 +173,17 @@ module instruction_exec (
             end
         end
     end
+
+    // ALU
+    ALU #(
+        .NB_OP(6),
+        .NB_DATA(32)
+    ) alu_inst (
+        .i_operand1(operand_A),
+        .i_operand2(operand_B),
+        .i_opcode(alu_opcode),
+        .o_result(ALU_result_wire)
+        .i_shamt(i_shamt)
+    );
 
 endmodule
