@@ -9,6 +9,7 @@ module ALU #(parameter NB_OP = 6,
 );
 
 localparam ADD_OPCODE   = 6'b100000;
+localparam IDLE_OPCODE  = 6'b111111;
 localparam SLL_OPCODE   = 6'b000000;
 localparam SRL_OPCODE   = 6'b000010;
 localparam SRA_OPCODE   = 6'b000011;
@@ -36,6 +37,7 @@ localparam LUI_OPCODE   = 6'b001111;
 always @(*) begin
     case (i_opcode)
         ADD_OPCODE:o_result = i_operand1 + i_operand2;
+        IDLE_OPCODE:o_result = 0;
         SLL_OPCODE:o_result = i_operand1 << i_shamt;
         SRL_OPCODE:o_result = i_operand1 >> i_shamt;
         SRA_OPCODE:o_result = i_operand1 >>> i_shamt;

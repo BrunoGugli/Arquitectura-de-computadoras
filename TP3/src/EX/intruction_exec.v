@@ -57,6 +57,9 @@ module instruction_exec (
 
     localparam ADD_OPCODE = 6'b100000;
     localparam IDLE_OPCODE = 6'b111111;
+    localparam JAL_OPCODE = 6'b000011;
+    localparam R_TYPE_OPCODE = 6'b000000;
+    localparam JALR_FUNCT = 6'b001001;
 
     // alu control
     always @(*) begin
