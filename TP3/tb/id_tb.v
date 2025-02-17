@@ -38,9 +38,9 @@ module instruction_decode_tb;
     wire [1:0] o_ctl_MEM_data_width_ID; // 00 -> byte; 01 -> halfword; 11 -> word
 
     // EX control signals
-    wire o_ctl_EX_reg_dest_ID;
+    wire o_ctl_EX_reg_dest_ID; // 0 -> rt; 1 -> rd
     wire [1:0] o_ctl_EX_ALU_op_ID;
-    wire o_ctl_EX_ALU_src_ID;
+    wire o_ctl_EX_ALU_src_ID; // 0 -> Mux forwarding; 1 -> Inmediato
 
     // jumps
     wire o_jump;
@@ -107,17 +107,57 @@ module instruction_decode_tb;
         i_reset = 0;
 
         //--Incialización de registros--
-        #10;
+        @ (posedge i_clk);
         i_ctl_wb_reg_write_wb = 1;
         i_write_addr_wb = 5'd1;
         i_write_data_wb = 32'h00000010; // $1 = 0x10 -> 16
+        
+        @ (posedge i_clk);
+        i_write_addr_wb = 5'd3;
+        i_write_data_wb = 32'h00000030; // $3 = 0x30 -> 48
         
         #10;
         i_ctl_wb_reg_write_wb = 0;
         
         // Test 1: Load word ( LW $2, 4($1) ) 
-        i_instruction = 32'b10001100001000100000000000000100;
+        i_instruction = 32'b100011_00001_00010_0000000000000100;
         i_pc = 32'h00000004;
+
+        #10;
+        // Test 2: Shift left logical ( SLL $2, $3, 4)
+        i_instruction = 32'b00000000000000110001000100000000;
+        i_pc = 32'h00000008;
+
+        #10;
+        // Test 3: Shift right logical ( SRL $2, $3, 4)
+        i_instruction = 32'b00000000000000110001000100000010;
+        i_pc = 32'h0000000C;
+
+        #10;
+        // Test 4: Shift right arithmetic ( SRA $2, $3, 10)
+        i_instruction = 32'b000000_00000_00011_00010_00100_000011;
+        i_pc = 32'h00000010;
+
+        #10;
+        // Test 5: Add ( ADD $2, $3, $1)
+        i_instruction = 32'b000000_00011_00001_00010_00000_100000;
+        i_pc = 32'h00000014;
+
+        #10;
+        // Test 6: JAL 5 -> 54 = 20
+        i_instruction = 32'b000011_00000_00000_00000_00000_000101;
+        i_pc = 32'h00000018;
+
+        #10;
+        // Test 7: BEQ r0,r0,5 -> 54 = 20
+        i_instruction = 32'b000100_00000_00000_00000_00000_000101;
+        i_pc = 32'h0000001C;
+
+        #10;
+        // Test 8: JALR $2, $4, 0
+        i_instruction = 32'b000000_00100_00000_00010_00000_001001;
+        i_pc = 32'h00000020;
+
 
         #1000;
     end
