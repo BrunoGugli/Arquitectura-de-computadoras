@@ -49,4 +49,133 @@ module instruction_exec (
     output reg [4:0] o_reg_dest,
 );
 
+    wire signed [31:0] operand_A;
+    wire signed [31:0] fw_operand_B;
+    wire signed [31:0] operand_B;
+    wire [31:0] ALU_result_wire;
+    wire [5:0] alu_opcode;
+
+    localparam ADD_OPCODE = 6'b100000;
+    localparam IDLE_OPCODE = 6'b111111;
+
+    // alu control
+    always @(*) begin
+        case(i_ctl_EX_alu_op_EX)
+            2'b00: begin // Loads, stores, jalr, jal
+                alu_opcode = ADD_OPCODE;
+            end
+
+            2'01: begin // Branch, no hace nada porque no se necesita ALU
+                alu_opcode = IDLE_OPCODE;
+            end
+
+            2'b10: begin // Tipo R, se toma el campo funct
+                alu_opcode = i_funct;
+            end
+
+            2'b11: begin // Tipo I con inmediato, se toma el opcode
+                alu_opcode = i_opcode;
+            end
+            default: begin
+                alu_opcode = IDLE_OPCODE;
+            end
+        endcase
+    end
+
+    // forwarding A
+    always @(*) begin
+        case(i_forward_A)
+            2'b00: begin
+                operand_A = i_RA;
+            end
+            2'b01: begin
+                operand_A = i_WB_read_data;
+            end
+            2'b10: begin
+                operand_A = i_MEM_ALU_result;
+            end
+            default: begin
+                operand_A = 0;
+            end
+        endcase
+
+        if(i_opcode == JAL_OPCODE || (i_opcode == R_TYPE_OPCODE && i_funct == JALR_FUNCT)) begin
+            operand_A = i_RA;
+        end
+    end
+
+    // forwarding B
+    always @(*) begin
+        case(i_forward_B)
+            2'b00: begin
+                fw_operand_B = i_RB;
+            end
+            2'b01: begin
+                fw_operand_B = i_WB_read_data;
+            end
+            2'b10: begin
+                fw_operand_B = i_MEM_ALU_result;
+            end
+            default: begin
+                fw_operand_B = 0;
+            end
+        endcase
+
+        if(i_opcode == JAL_OPCODE || (i_opcode == R_TYPE_OPCODE && i_funct == JALR_FUNCT)) begin
+            fw_operand_B = i_RB;
+        end
+    end
+
+    // alu src control
+    always @(*) begin
+        if(i_ctl_EX_alu_src_EX) begin
+            operand_B = i_inmediate;
+        end else begin
+            operand_B = fw_operand_B;
+        end
+    end
+
+    // salidas a MEM
+    always @(posedge i_clk) begin
+        if(i_reset) begin
+            o_ALU_result <= 32'h00000000;
+            o_data_to_write <= 32'h00000000;
+            o_reg_dest <= 5'b00000;
+        end else if(~i_halt) begin
+            // reg dest
+            if(i_ctl_EX_reg_dest_EX) begin
+                o_reg_dest <= i_rd;
+            end else begin
+                o_reg_dest <= i_rt;
+            end
+
+            // Alu result
+            o_ALU_result <= ALU_result_wire;
+
+            // data to write in mem
+            o_data_to_write <= fw_operand_B; // aca capaz tire error por el signed
+        end
+    end
+
+    // señales de control
+    always @(posedge i_clk) begin
+        if(i_reset) begin
+            o_ctl_MEM_mem_read_EX <= 1'b0;
+            o_ctl_MEM_mem_write_EX <= 1'b0;
+            o_ctl_MEM_unsigned_EX <= 1'b0;
+            o_ctl_MEM_data_width_EX <= 2'b00;
+            o_ctl_WB_mem_to_reg_EX <= 1'b0;
+            o_ctl_WB_reg_write_EX <= 1'b0;
+        end else begin
+            if(~i_halt) begin
+                o_ctl_MEM_mem_read_EX       <= i_ctl_MEM_mem_read_EX;
+                o_ctl_MEM_mem_write_EX      <= i_ctl_MEM_mem_write_EX;
+                o_ctl_MEM_unsigned_EX       <= i_ctl_MEM_unsigned_EX;
+                o_ctl_MEM_data_width_EX     <= i_ctl_MEM_data_width_EX;
+                o_ctl_WB_mem_to_reg_EX      <= i_ctl_WB_mem_to_reg_EX;
+                o_ctl_WB_reg_write_EX       <= i_ctl_WB_reg_write_EX;
+            end
+        end
+    end
+
 endmodule
