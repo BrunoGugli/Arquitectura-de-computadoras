@@ -49,7 +49,7 @@ module instruction_exec (
         .i_we(i_ctl_MEM_mem_write_MEM),
         .i_addr(i_ALU_result),
         .i_data(i_data_to_write),
-        .o_data(o_ALU_result)
+        .o_data(o_data_readed_from_memory)
     );
 
 endmodule
