@@ -36,12 +36,12 @@ module instruction_exec (
     input wire [31:0] i_WB_read_data,
 
     // señales de control output
-    input reg o_ctl_MEM_mem_read_EX,
-    input reg o_ctl_MEM_mem_write_EX,
-    input reg o_ctl_MEM_unsigned_EX,
-    input reg [1:0] o_ctl_MEM_data_width_EX,
-    input reg o_ctl_WB_mem_to_reg_EX,
-    input reg o_ctl_WB_reg_write_EX,
+    output reg o_ctl_MEM_mem_read_EX,
+    output reg o_ctl_MEM_mem_write_EX,
+    output reg o_ctl_MEM_unsigned_EX,
+    output reg [1:0] o_ctl_MEM_data_width_EX,
+    output reg o_ctl_WB_mem_to_reg_EX,
+    output reg o_ctl_WB_reg_write_EX,
 
     // lo que va a MEM
     output reg [31:0] o_ALU_result,
