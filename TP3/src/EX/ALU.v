@@ -60,7 +60,7 @@ always @(*) begin
         ANDI_OPCODE:o_result = i_operand1 & i_operand2;
         ORI_OPCODE:o_result = i_operand1 | i_operand2;
         XORI_OPCODE: o_result = i_operand1 ^ i_operand2;
-        LUI_OPCODE: o_result = {i_operand2, 16'b0};
+        LUI_OPCODE: o_result = {i_operand2[15:0], 16'b0}
         default: o_result = 0;
     endcase
 end
