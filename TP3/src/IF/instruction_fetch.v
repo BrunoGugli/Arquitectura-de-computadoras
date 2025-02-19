@@ -30,6 +30,7 @@ xilinx_one_port_ram_async #(
 ) instruccion_mem (
     .i_clk(i_clk),
     .i_we(i_write_instruction_flag),
+    .i_writing_data_width(2'b11), // 32 bits
     .i_addr(address_instruction[7:0]), 
     .i_data(i_instruction_to_write),
     .o_data(instruction_from_memory)
