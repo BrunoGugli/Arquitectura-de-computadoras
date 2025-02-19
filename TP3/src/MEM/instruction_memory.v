@@ -1,4 +1,4 @@
-module instruction_exec (
+module instruction_mem (
     input wire i_clk,
     input wire i_reset,
     input wire i_halt,
