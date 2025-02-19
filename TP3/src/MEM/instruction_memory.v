@@ -33,7 +33,7 @@ module instruction_mem (
     localparam WORD = 2'b11;
 
     wire [31:0] data_readed_from_memory;
-    wire [MEM_ADDR_WIDTH-1:0] address_to_access_memory; // Este cable intermedio para ignorar alu result, en caso de que la instruccion no lea ni escriba en memoria
+    wire [MEM_ADDR_WIDTH-1:0] address_to_access_memory; // Este cable intermedio para manejar la direccion de acceso a memoria por si esta desalineada para su respectivo caso
 
     
 
