@@ -48,7 +48,6 @@ module instruction_decode (
     output reg [31:0] o_jump_address,
     output reg [1:0] o_reg_in_jump, // 00 -> not jump, 01 -> jump with rs and rt, 10 -> jump with rs only
 
-    output wire o_halt
 );
 
     wire [5:0] opcode;
@@ -277,6 +276,5 @@ module instruction_decode (
     assign rt = i_instruction[20:16];
     assign funct = i_instruction[5:0];
     assign inmediato = {{16{i_instruction[15]}}, i_instruction[15:0]}; // Inmediato con extension de signo
-    assign o_halt = (i_instruction == HALT);
 
 endmodule
