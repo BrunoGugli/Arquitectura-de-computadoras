@@ -46,20 +46,32 @@ module instruction_exec (
     // lo que va a MEM
     output reg [31:0] o_ALU_result,
     output reg [31:0] o_data_to_write,
-    output reg [4:0] o_reg_dest,
+    output reg [4:0] o_reg_dest
 );
 
-    wire signed [31:0] operand_A;
-    wire signed [31:0] fw_operand_B;
-    wire signed [31:0] operand_B;
+    reg signed [31:0] operand_A;
+    reg signed [31:0] fw_operand_B;
+    reg signed [31:0] operand_B;
     wire [31:0] ALU_result_wire;
-    wire [5:0] alu_opcode;
+    reg [5:0] alu_opcode;
 
     localparam ADD_OPCODE = 6'b100000;
     localparam IDLE_OPCODE = 6'b111111;
     localparam JAL_OPCODE = 6'b000011;
     localparam R_TYPE_OPCODE = 6'b000000;
     localparam JALR_FUNCT = 6'b001001;
+
+        // ALU
+    ALU #(
+        .NB_OP(6),
+        .NB_DATA(32)
+    ) alu_inst (
+        .i_operand1(operand_A),
+        .i_operand2(operand_B),
+        .i_opcode(alu_opcode),
+        .o_result(ALU_result_wire),
+        .i_shamt(i_shamt)
+    );
 
     // alu control
     always @(*) begin
@@ -68,7 +80,7 @@ module instruction_exec (
                 alu_opcode = ADD_OPCODE;
             end
 
-            2'01: begin // Branch, no hace nada porque no se necesita ALU
+            2'b01: begin // Branch, no hace nada porque no se necesita ALU
                 alu_opcode = IDLE_OPCODE;
             end
 
@@ -176,17 +188,5 @@ module instruction_exec (
             end
         end
     end
-
-    // ALU
-    ALU #(
-        .NB_OP(6),
-        .NB_DATA(32)
-    ) alu_inst (
-        .i_operand1(operand_A),
-        .i_operand2(operand_B),
-        .i_opcode(alu_opcode),
-        .o_result(ALU_result_wire)
-        .i_shamt(i_shamt)
-    );
 
 endmodule

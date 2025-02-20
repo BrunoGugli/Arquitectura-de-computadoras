@@ -1,5 +1,5 @@
 module ALU #(parameter NB_OP = 6,
-             parameter NB_DATA = 32,
+             parameter NB_DATA = 32
 )(
     input wire signed [NB_DATA-1:0] i_operand1,  // Primer operando de 8 bits
     input wire signed [NB_DATA-1:0] i_operand2,  // Segundo operando de 8 bits
@@ -8,7 +8,6 @@ module ALU #(parameter NB_OP = 6,
     output reg [NB_DATA-1:0] o_result    // Resultado de la operación
 );
 
-localparam ADD_OPCODE   = 6'b100000;
 localparam IDLE_OPCODE  = 6'b111111;
 localparam SLL_OPCODE   = 6'b000000;
 localparam SRL_OPCODE   = 6'b000010;
@@ -16,7 +15,9 @@ localparam SRA_OPCODE   = 6'b000011;
 localparam SLLV_OPCODE  = 6'b000100;
 localparam SRLV_OPCODE  = 6'b000110;
 localparam SRAV_OPCODE  = 6'b000111;
+localparam ADD_OPCODE   = 6'b100000;
 localparam ADDU_OPCODE  = 6'b100001;
+localparam SUB_OPCODE   = 6'b100010;
 localparam SUBU_OPCODE  = 6'b100011;
 localparam AND_OPCODE   = 6'b100100;
 localparam OR_OPCODE    = 6'b100101;
@@ -37,6 +38,7 @@ localparam LUI_OPCODE   = 6'b001111;
 always @(*) begin
     case (i_opcode)
         ADD_OPCODE:o_result = i_operand1 + i_operand2;
+        SUB_OPCODE:o_result = i_operand1 - i_operand2;
         IDLE_OPCODE:o_result = 0;
         SLL_OPCODE:o_result = i_operand1 << i_shamt;
         SRL_OPCODE:o_result = i_operand1 >> i_shamt;
@@ -60,7 +62,7 @@ always @(*) begin
         ANDI_OPCODE:o_result = i_operand1 & i_operand2;
         ORI_OPCODE:o_result = i_operand1 | i_operand2;
         XORI_OPCODE: o_result = i_operand1 ^ i_operand2;
-        LUI_OPCODE: o_result = {i_operand2[15:0], 16'b0}
+        LUI_OPCODE: o_result = {i_operand2[15:0], 16'b0};
         default: o_result = 0;
     endcase
 end
