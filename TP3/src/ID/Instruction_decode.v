@@ -48,6 +48,8 @@ module instruction_decode (
     output reg [31:0] o_jump_address,
     output reg [1:0] o_reg_in_jump, // 00 -> not jump, 01 -> jump with rs and rt, 10 -> jump with rs only
 
+    output wire [4:0] o_rs_wire,
+    output wire [4:0] o_rt_wire // Estos dos para la hazard unit
 );
 
     wire [5:0] opcode;
@@ -276,5 +278,7 @@ module instruction_decode (
     assign rt = i_instruction[20:16];
     assign funct = i_instruction[5:0];
     assign inmediato = {{16{i_instruction[15]}}, i_instruction[15:0]}; // Inmediato con extension de signo
+    assign o_rs_wire = rs; // para la hazard unit
+    assign o_rt_wire = rt; // para la hazard unit
 
 endmodule

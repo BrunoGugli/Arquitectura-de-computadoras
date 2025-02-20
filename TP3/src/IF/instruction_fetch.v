@@ -4,6 +4,8 @@ module instruction_fetch(
     input wire i_stall,
     input wire i_halt,
     input wire i_write_instruction_flag, // para escribir en la memoria de instrucciones
+    input wire i_jump,
+    input wire [31:0] i_jump_address, // dirección a la que se salta
     input wire [31:0] i_instruction_to_write, // instrucción a escribir
     input wire [31:0] i_address_to_write_inst, // dirección dónde escribir la instrucción
     output reg [31:0] o_instruction, // este es el latch que se usa para guardar la instruccion
@@ -17,8 +19,8 @@ wire [31:0] address_instruction; // es la direccion que se pasa a la memoria, ya
 program_counter u_program_counter (
     .i_clk(i_clk),
     .i_reset(i_reset),
-    .i_jump_address(32'b0),
-    .i_jump(1'b0),
+    .i_jump_address(i_jump_address),
+    .i_jump(i_jump),
     .i_stall(i_stall),
     .i_halt(i_halt),
     .o_pc(o_pc)

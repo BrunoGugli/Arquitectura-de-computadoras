@@ -46,7 +46,8 @@ module instruction_exec (
     // lo que va a MEM
     output reg [31:0] o_ALU_result,
     output reg [31:0] o_data_to_write,
-    output reg [4:0] o_reg_dest
+    output reg [4:0] o_reg_dest,
+    output wire [4:0] o_reg_dest_wire // para la hazard unit
 );
 
     reg signed [31:0] operand_A;
@@ -141,7 +142,7 @@ module instruction_exec (
         end
     end
 
-    // alu src control
+    // alu src control y reg dest resolution
     always @(*) begin
         if(i_ctl_EX_alu_src_EX) begin
             operand_B = i_inmediate;
@@ -156,9 +157,10 @@ module instruction_exec (
             o_ALU_result <= 32'h00000000;
             o_data_to_write <= 32'h00000000;
             o_reg_dest <= 5'b00000;
+            o_reg_dest_wire <= 5'b00000;
         end else if(~i_halt) begin
             // reg dest
-            o_reg_dest <= i_ctl_EX_reg_dest_EX ? i_rd : i_rt;
+            o_reg_dest <= o_reg_dest_wire;
 
             // Alu result
             o_ALU_result <= ALU_result_wire;
@@ -188,5 +190,7 @@ module instruction_exec (
             end
         end
     end
+
+    assign o_reg_dest_wire <= i_ctl_EX_reg_dest_EX ? i_rd : i_rt;
 
 endmodule
