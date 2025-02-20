@@ -35,7 +35,8 @@ module instruction_decode (
     output reg o_ctl_MEM_mem_read_ID,
     output reg o_ctl_MEM_mem_write_ID,
     output reg o_ctl_MEM_unsigned_ID,
-    output reg [1:0] o_MEM_data_width_ID, // 00 -> byte, 01 -> halfword, 11 -> word
+    output reg [1:0] o_ctl_MEM_data_width_ID , // 00 -> byte, 01 -> halfword, 11 -> word
+    
 
     // EX control signals
     output reg o_ctl_EX_reg_dest_ID,
@@ -67,7 +68,7 @@ module instruction_decode (
     localparam BEQ_OPCODE = 6'b000100;
     localparam BNE_OPCODE = 6'b000101;
     localparam J_OPCODE = 6'b000010;
-
+    
     register_bank #(
         .DATA_WIDTH(32),
         .ADDR_WIDTH(5)
@@ -82,7 +83,6 @@ module instruction_decode (
         .o_data_read1(RA),
         .o_data_read2(RB)
     );
-
 
     // WB signals
     always @(posedge i_clk) begin
@@ -143,8 +143,8 @@ module instruction_decode (
                             o_ctl_MEM_mem_write_ID <= 1'b0;
                         end
                     end else begin // Any other instruction
-                        o_MEM_mem_read_ID <= 1'b0;
-                        o_MEM_mem_write_ID <= 1'b0;
+                        o_ctl_MEM_mem_read_ID <= 1'b0;
+                        o_ctl_MEM_mem_write_ID <= 1'b0;
                     end
                 end
             end
@@ -204,22 +204,22 @@ module instruction_decode (
             if(~i_halt) begin
                 if (opcode == JAL_OPCODE || (opcode == R_TYPE_OPCODE && funct == JALR_FUNCT)) begin
                     o_RA <= i_pc;
-                    o_rs <= 5'b00000; // rs is not used <- ver bien esto pq JALR sí usa rs segun el manual del ISA, el que no usa es el rt
+                    o_rt <= 5'b00000; // rt is not used
                     o_RB <= 4;
                 end else begin
                     o_RA <= RA;
-                    o_rs <= rs;
+                    o_rt <= rt;
                     o_RB <= RB;
                 end
 
                 if(opcode == JAL_OPCODE) begin
-                    o_rt <= 5'b11111; // register 31 <- y acá debería ser el rd, no el rt, segun el manual del ISA
+                    o_rd <= 5'b11111; // register 31
                 end else begin
-                    o_rt <= rt;
+                    o_rd <= i_instruction[15:11];
                 end
 
                 o_opcode <= opcode;
-                o_rd <= i_instruction[15:11];
+                o_rs <= rs;
                 o_shamt <= i_instruction[10:6];
                 o_funct <= funct;
                 o_inmediato <= inmediato;
@@ -238,7 +238,7 @@ module instruction_decode (
                 o_reg_in_jump = 2'b01;
                 if(RA == RB) begin
                     o_jump = 1'b1;
-                    o_jump_address = i_pc + (inmediato << 2) + 4; // inmediato aligned
+                    o_jump_address = i_pc + (inmediato << 2); // inmediato aligned
                 end
             end
 
@@ -246,7 +246,7 @@ module instruction_decode (
                 o_reg_in_jump = 2'b01;
                 if(RA != RB) begin
                     o_jump = 1'b1;
-                    o_jump_address = i_pc + (inmediato << 2) + 4; // inmediato aligned <- hacerle tb a esto pq no se si va el +4 ahi
+                    o_jump_address = i_pc + (inmediato << 2); // inmediato aligned <- hacerle tb a esto pq no se si va el +4 ahi
                 end
             end
 
