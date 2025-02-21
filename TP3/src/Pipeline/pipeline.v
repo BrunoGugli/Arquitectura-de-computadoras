@@ -22,7 +22,7 @@ module pipeline (
     wire [4:0] ID_EX_rt;
     wire [4:0] ID_EX_rd;
     wire [5:0] ID_EX_funct;
-    wire [31:0] ID_EX_inmediato;
+    wire [31:0] ID_EX_inmediate;
     wire [5:0] ID_EX_opcode;
     wire [4:0] ID_EX_shamt;
 
@@ -92,7 +92,7 @@ module pipeline (
         .o_pc(IF_ID_pc)
     );
 
-    instruccion_decode u_instruccion_decode (
+    instruction_decode u_instruction_decode (
 
         .i_clk(i_clk),
         .i_reset(i_reset),
@@ -111,7 +111,7 @@ module pipeline (
         .o_rt(ID_EX_rt),
         .o_rd(ID_EX_rd),
         .o_funct(ID_EX_funct),
-        .o_inmediato(ID_EX_inmediato),
+        .o_inmediato(ID_EX_inmediate),
         .o_opcode(ID_EX_opcode),
         .o_shamt(ID_EX_shamt),
 
@@ -125,7 +125,7 @@ module pipeline (
         
         .o_ctl_EX_reg_dest_ID(ID_EX_ctl_EX_reg_dest),
         .o_ctl_EX_ALU_op_ID(ID_EX_ctl_EX_ALU_op),
-        .o_ctl_EX_alu_src_ID(ID_EX_ctl_EX_alu_src),
+        .o_ctl_EX_ALU_src_ID(ID_EX_ctl_EX_alu_src),
 
         .o_jump(ID_jump),
         .o_jump_address(ID_jump_address),
@@ -135,7 +135,7 @@ module pipeline (
         .o_rt_wire(ID_rt)
     );
 
-    instruccion_execute u_instruccion_execute (
+    instruction_exec u_instruction_exec (
 
         .i_clk(i_clk),
         .i_reset(i_reset),
@@ -159,7 +159,7 @@ module pipeline (
         .i_rt(ID_EX_rt),
         .i_rd(ID_EX_rd),
         .i_funct(ID_EX_funct),
-        .i_inmediato(ID_EX_inmediato),
+        .i_inmediate(ID_EX_inmediate),
         .i_opcode(ID_EX_opcode),
         .i_shamt(ID_EX_shamt),
 
@@ -203,7 +203,7 @@ module pipeline (
         .o_ctl_WB_mem_to_reg_MEM(MEM_WB_ctl_WB_mem_to_reg),
         .o_ctl_WB_reg_write_MEM(MEM_WB_ctl_WB_reg_write),
 
-        .o_ALU_result(MEM_WB_ALU_result)
+        .o_ALU_result(MEM_WB_ALU_result),
         .o_data_readed_from_memory(MEM_WB_data_readed_from_memory),
         .o_reg_dest(MEM_WB_reg_dest)
     );

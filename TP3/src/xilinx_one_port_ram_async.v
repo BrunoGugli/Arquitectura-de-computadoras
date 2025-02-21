@@ -27,8 +27,6 @@ module xilinx_one_port_ram_async
                     {mem[i_addr], mem[i_addr+1]} <= i_data[15:0];
                 WORD:
                     {mem[i_addr], mem[i_addr+1], mem[i_addr+2], mem[i_addr+3]} <= i_data[31:0];
-                default:
-                    // do nothing
             endcase
         end
     end

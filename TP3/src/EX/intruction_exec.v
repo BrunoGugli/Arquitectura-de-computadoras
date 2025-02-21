@@ -157,7 +157,6 @@ module instruction_exec (
             o_ALU_result <= 32'h00000000;
             o_data_to_write <= 32'h00000000;
             o_reg_dest <= 5'b00000;
-            o_reg_dest_wire <= 5'b00000;
         end else if(~i_halt) begin
             // reg dest
             o_reg_dest <= o_reg_dest_wire;
@@ -191,6 +190,6 @@ module instruction_exec (
         end
     end
 
-    assign o_reg_dest_wire <= i_ctl_EX_reg_dest_EX ? i_rd : i_rt;
+    assign o_reg_dest_wire = i_ctl_EX_reg_dest_EX ? i_rd : i_rt;
 
 endmodule
