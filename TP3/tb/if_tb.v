@@ -1,6 +1,6 @@
 module tb_fill_and_read_memory();
 
-    // Señales para el DUT
+    // Señales para el UUT
     reg i_clk;
     reg i_reset;
     reg i_stall;
@@ -11,7 +11,7 @@ module tb_fill_and_read_memory();
     wire [31:0] o_instruction;
     wire [31:0] o_pc;
 
-    // Instancia del DUT
+    // Instancia del UUT
     instruction_fetch uut (
         .i_clk(i_clk),
         .i_reset(i_reset),

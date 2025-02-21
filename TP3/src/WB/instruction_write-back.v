@@ -19,9 +19,8 @@ module instruction_wb (
     always @(*) begin
         if(i_reset) begin
             o_data_to_write <= 32'h0;
-            o_reg_dest <= 5'b0;
         end else if(~i_halt) begin
-            if (i_ctl_WB_mem_to_reg_MEM) begin
+            if (i_ctl_WB_mem_to_reg_WB) begin
                 o_data_to_write <= i_ALU_result;
             end else begin
                 o_data_to_write <= i_data_from_memory;

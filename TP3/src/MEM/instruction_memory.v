@@ -27,14 +27,25 @@ module instruction_mem (
     output reg [4:0] o_reg_dest
 );
 
-    localparam MEM_ADDR_WIDTH = 12;
+    localparam MEM_ADDR_WIDTH = 13;
     localparam BYTE = 2'b00;
     localparam HALF_WORD = 2'b01;
     localparam WORD = 2'b11;
 
     wire [31:0] data_readed_from_memory;
-    wire [MEM_ADDR_WIDTH-1:0] address_to_access_memory; // Este cable intermedio para manejar la direccion de acceso a memoria por si esta desalineada para su respectivo caso
+    reg [MEM_ADDR_WIDTH-1:0] address_to_access_memory; // Este cable intermedio para manejar la direccion de acceso a memoria por si esta desalineada para su respectivo caso
 
+    xilinx_one_port_ram_async #(
+        .DATA_WIDTH(8),
+        .ADDR_WIDTH(MEM_ADDR_WIDTH) // el ancho del resultado de la ALU
+    ) data_memory (
+        .i_clk(i_clk),
+        .i_we(i_ctl_MEM_mem_write_MEM),
+        .i_writing_data_width(i_ctl_MEM_data_width_MEM),
+        .i_addr(address_to_access_memory),
+        .i_data(i_data_to_write),
+        .o_data(data_readed_from_memory)
+    );
     
 
     // Alu result y reg dest
@@ -62,7 +73,6 @@ module instruction_mem (
             WORD: begin
                 address_to_access_memory <= {i_ALU_result[MEM_ADDR_WIDTH-1:2], 2'b00}; // si es word, se alinea la direccion a la mas cercana en caso de estar desalineada (2 lsb = 00)
             end
-            default: // do nothing
         endcase
     end
 
@@ -88,7 +98,6 @@ module instruction_mem (
                             o_data_readed_from_memory <= data_readed_from_memory;
                         end
                     end
-                    default: // do nothing
                 endcase
             end
         end
@@ -106,18 +115,5 @@ module instruction_mem (
             end
         end
     end
-
-
-    xilinx_one_port_ram_async #(
-        .DATA_WIDTH(8),
-        .ADDR_WIDTH(MEM_ADDR_WIDTH) // el ancho del resultado de la ALU
-    ) data_memory (
-        .i_clk(i_clk),
-        .i_we(i_ctl_MEM_mem_write_MEM),
-        .i_writing_data_width(i_ctl_MEM_data_width_MEM),
-        .i_addr(address_to_access_memory),
-        .i_data(i_data_to_write),
-        .o_data(data_readed_from_memory)
-    );
 
 endmodule
