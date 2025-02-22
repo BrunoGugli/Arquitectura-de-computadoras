@@ -133,7 +133,7 @@ always @(*) begin
                 gral_next_state = GRAL_IDLE;
                 o_reset = 1'b1;
             end else begin
-                gral_next_state = CH_IDLE;
+                gral_next_state = CH_IDLE; // Si el programa no está listo, volvemos a CH_IDLE a esperar la sig instruccion
             end
         end
 
@@ -141,6 +141,7 @@ always @(*) begin
             if (i_program_end) begin
                 o_halt <= 1'b1; // paramos el pipeline (aca pq si lo hacemos en el proximo flanco, el pipeline va a leer el halt como 0 y va a actualizar el latch ID_EX)
                 gral_next_state = SEND_INFO_TO_PC;
+                //agregar estado last instruction
             end 
         end
 
