@@ -12,8 +12,10 @@ module instruction_fetch(
     output wire [31:0] o_pc //esto se usa para guardar la dirección de la instrucción
 );
 
+localparam ADDR_WIDTH = 12;
+
 wire [31:0] instruction_from_memory; // se usa para guardar la instruccion que se lee de la memoria
-wire [11:0] address_instruction; // es la direccion que se pasa a la memoria, ya sea el pc o la direccion de escritura
+wire [ADDR_WIDTH-1:0] address_instruction; // es la direccion que se pasa a la memoria, ya sea el pc o la direccion de escritura
 
 
 program_counter u_program_counter (
@@ -28,12 +30,12 @@ program_counter u_program_counter (
 
 xilinx_one_port_ram_async #(
     .DATA_WIDTH(8), // 1 byte por posicion de memoria
-    .ADDR_WIDTH(12) // 256 direcciones de memoria, mentenemos el byte-adreasable en multiplos de 4 ***** CAMBIAR ESTO DESPUES, ESTA ASI PARA PRUEBAS EN EL VIVADO *****
+    .ADDR_WIDTH(ADDR_WIDTH) // 256 direcciones de memoria, mentenemos el byte-adreasable en multiplos de 4 ***** CAMBIAR ESTO DESPUES, ESTA ASI PARA PRUEBAS EN EL VIVADO *****
 ) instruccion_mem (
     .i_clk(i_clk),
     .i_we(i_write_instruction_flag),
     .i_writing_data_width(2'b11), // 32 bits
-    .i_addr(address_instruction), 
+    .i_addr(address_instruction[ADDR_WIDTH-1:0]), 
     .i_data(i_instruction_to_write),
     .o_data(instruction_from_memory)
 );

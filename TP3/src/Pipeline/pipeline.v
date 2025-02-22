@@ -35,13 +35,13 @@ module pipeline (
 
     wire [1:0] ID_EX_ctl_MEM_data_width;
     wire ID_EX_ctl_EX_reg_dest;
-    wire ID_EX_ctl_EX_ALU_op;
+    wire [1:0] ID_EX_ctl_EX_ALU_op;
     wire ID_EX_ctl_EX_alu_src;
 
     // EX/MEM
     wire [31:0] EX_MEM_ALU_result;
     wire [31:0] EX_MEM_data_to_write;
-    wire [4:0] EX_MEM_reg_dest;
+    wire [4:0]  EX_MEM_reg_dest;
 
     wire EX_MEM_ctl_MEM_mem_read;
     wire EX_MEM_ctl_MEM_mem_write;
@@ -54,7 +54,7 @@ module pipeline (
     // MEM/WB
     wire [31:0] MEM_WB_ALU_result;
     wire [31:0] MEM_WB_data_readed_from_memory;
-    wire [4:0] MEM_WB_reg_dest;
+    wire [4:0]  MEM_WB_reg_dest;
 
     wire MEM_WB_ctl_WB_mem_to_reg;
     wire MEM_WB_ctl_WB_reg_write;
@@ -69,11 +69,11 @@ module pipeline (
     // Hazard unit
     wire hzrd_stall;
     wire ID_jump;
-    wire ID_jump_address;
-    wire [1:0] ID_reg_in_jump;
-    wire [4:0] ID_rs;
-    wire [4:0] ID_rt;
-    wire [4:0] EX_reg_dest;
+    wire [31:0] ID_jump_address;
+    wire [1:0]  ID_reg_in_jump;
+    wire [4:0]  ID_rs;
+    wire [4:0]  ID_rt;
+    wire [4:0]  EX_reg_dest;
 
 //------------------------------------------------- INSTANCIAS ----------------------------------------------------------
 

@@ -43,6 +43,9 @@ module pipeline_tb();
 
         #10;
         i_halt = 0;
+        i_write_instruction_flag = 0;
+
+
 
         #1000000000;
         $finish;
