@@ -61,7 +61,7 @@ module instruction_decode (
     wire [5:0] funct;
 
     localparam NOP = 32'h00000000;
-    localparam HALT = 32'hffffffff;
+    localparam END_INSTR = 32'hffffffff;
     localparam R_TYPE_OPCODE = 6'b000000;
     localparam JAL_OPCODE = 6'b000011;
     localparam JALR_FUNCT = 6'b001001;
@@ -91,7 +91,7 @@ module instruction_decode (
             o_ctl_WB_mem_to_reg_ID <= 1'b0;
             o_ctl_WB_reg_write_ID <= 1'b0;
         end else begin
-            if(~i_halt) begin
+            if(~i_halt || i_instruction != END_INSTR) begin
                 if(i_stall || i_instruction == NOP) begin
                     o_ctl_WB_mem_to_reg_ID <= 1'b0;
                     o_ctl_WB_reg_write_ID <= 1'b0;
@@ -126,7 +126,7 @@ module instruction_decode (
             o_ctl_MEM_unsigned_ID <= 1'b0;
             o_ctl_MEM_data_width_ID <= 2'b00;
         end else begin
-            if(~i_halt) begin
+            if(~i_halt || i_instruction != END_INSTR) begin
                 if(i_stall || i_instruction == NOP) begin
                     o_ctl_MEM_mem_read_ID <= 1'b0;
                     o_ctl_MEM_mem_write_ID <= 1'b0;
@@ -159,7 +159,7 @@ module instruction_decode (
             o_ctl_EX_ALU_op_ID <= 2'b00;
             o_ctl_EX_ALU_src_ID <= 1'b0;
         end else begin
-            if(~i_halt) begin
+            if(~i_halt || i_instruction != END_INSTR) begin
                 if(i_stall || i_instruction == NOP) begin
                     o_ctl_EX_reg_dest_ID <= 1'b0;
                     o_ctl_EX_ALU_op_ID <= 2'b00;
@@ -202,7 +202,7 @@ module instruction_decode (
             o_opcode <= 6'b000000;
             o_shamt <= 5'b00000;
         end else begin
-            if(~i_halt) begin
+            if(~i_halt || i_instruction != END_INSTR) begin
                 if (opcode == JAL_OPCODE || (opcode == R_TYPE_OPCODE && funct == JALR_FUNCT)) begin
                     o_RA <= i_pc;
                     o_rt <= 5'b00000; // rt is not used

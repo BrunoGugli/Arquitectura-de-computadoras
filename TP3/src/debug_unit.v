@@ -30,7 +30,7 @@ localparam [2:0] ST_ASSIGN          = 2'b110;
 localparam [2:0] ST_STAGE_EXECUTED  = 2'b111;
 
 // Manejo de estados
-reg [3:0] gral_state, gral_next_state;
+reg [2:0] gral_state, gral_next_state;
 
 // fixed message - GRAL
 localparam [31:0] charge_mode = "\0chm";
