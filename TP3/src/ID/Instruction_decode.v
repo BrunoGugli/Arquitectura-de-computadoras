@@ -49,7 +49,9 @@ module instruction_decode (
     output reg [1:0] o_reg_in_jump, // 00 -> not jump, 01 -> jump with rs and rt, 10 -> jump with rs only
 
     output wire [4:0] o_rs_wire,
-    output wire [4:0] o_rt_wire // Estos dos para la hazard unit
+    output wire [4:0] o_rt_wire, // Estos dos para la hazard unit
+
+    output wire o_program_end
 );
 
     wire [5:0] opcode;
@@ -59,7 +61,7 @@ module instruction_decode (
     wire [31:0] RB;
     wire [31:0] inmediato;
     wire [5:0] funct;
-    wire [31:0] efective_instruction;
+    reg [31:0] efective_instruction;
 
     reg program_finished; // para no seguir aceptando instrucciones cuando termina el programa
 
@@ -107,8 +109,8 @@ module instruction_decode (
             o_ctl_WB_mem_to_reg_ID <= 1'b0;
             o_ctl_WB_reg_write_ID <= 1'b0;
         end else begin
-            if(~i_halt || efective_instruction != END_INSTR) begin
-                if(i_stall || efective_instruction == NOP) begin
+            if(~i_halt) begin
+                if(i_stall || efective_instruction == NOP || efective_instruction == END_INSTR) begin
                     o_ctl_WB_mem_to_reg_ID <= 1'b0;
                     o_ctl_WB_reg_write_ID <= 1'b0;
                 end else begin
@@ -142,8 +144,8 @@ module instruction_decode (
             o_ctl_MEM_unsigned_ID <= 1'b0;
             o_ctl_MEM_data_width_ID <= 2'b00;
         end else begin
-            if(~i_halt || efective_instruction != END_INSTR) begin
-                if(i_stall || efective_instruction == NOP) begin
+            if(~i_halt) begin
+                if(i_stall || efective_instruction == NOP || efective_instruction == END_INSTR) begin
                     o_ctl_MEM_mem_read_ID <= 1'b0;
                     o_ctl_MEM_mem_write_ID <= 1'b0;
                     o_ctl_MEM_unsigned_ID <= 1'b0;
@@ -175,8 +177,8 @@ module instruction_decode (
             o_ctl_EX_ALU_op_ID <= 2'b00;
             o_ctl_EX_ALU_src_ID <= 1'b0;
         end else begin
-            if(~i_halt || efective_instruction != END_INSTR) begin
-                if(i_stall || efective_instruction == NOP) begin
+            if(~i_halt) begin
+                if(i_stall || efective_instruction == NOP || efective_instruction == END_INSTR) begin
                     o_ctl_EX_reg_dest_ID <= 1'b0;
                     o_ctl_EX_ALU_op_ID <= 2'b00;
                     o_ctl_EX_ALU_src_ID <= 1'b0;
@@ -219,7 +221,7 @@ module instruction_decode (
             o_shamt <= 5'b00000;
             program_finished <= 0;
         end else begin
-            if(~i_halt || efective_instruction != END_INSTR) begin
+            if(~i_halt) begin
                 if (opcode == JAL_OPCODE || (opcode == R_TYPE_OPCODE && funct == JALR_FUNCT)) begin
                     o_RA <= i_pc;
                     o_rt <= 5'b00000; // rt is not used
@@ -297,5 +299,6 @@ module instruction_decode (
     assign inmediato = {{16{efective_instruction[15]}}, efective_instruction[15:0]}; // Inmediato con extension de signo
     assign o_rs_wire = rs; // para la hazard unit
     assign o_rt_wire = rt; // para la hazard unit
+    assign o_program_end = program_finished;
 
 endmodule
