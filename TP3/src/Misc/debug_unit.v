@@ -48,6 +48,7 @@ localparam [31:0] next_step = "nxst";
 reg prog_ready;
 reg step_mode;
 reg canceled_step;
+reg [1:0] last_intr_count;
 
 // Manejo de estados - GRAL
 always @(posedge i_clk) begin
@@ -57,6 +58,7 @@ always @(posedge i_clk) begin
         prog_ready <= 0;
         step_mode <= 0;
         canceled_step <= 0;
+        last_intr_count <= 2'b00;
     end else begin
         gral_state <= gral_next_state;
 
@@ -79,6 +81,9 @@ always @(posedge i_clk) begin
 
             CNT_EXEC: begin
                 o_halt <= 1'b0;
+                if (i_program_end) begin // si la instr que esta en decode es la end, debo dejar pasar 3 ciclos más para que la ultima instr eferctiva termine de ejecutarse (salga del pipeline)
+                    last_intr_count <= last_intr_count + 1;
+                end
             end
 
             SEND_INFO_TO_PC: begin
@@ -138,10 +143,9 @@ always @(*) begin
         end
 
         CNT_EXEC: begin
-            if (i_program_end) begin
-                o_halt <= 1'b1; // paramos el pipeline (aca pq si lo hacemos en el proximo flanco, el pipeline va a leer el halt como 0 y va a actualizar el latch ID_EX)
+            if (i_program_end && last_intr_count == 3) begin
+                o_halt <= 1'b1;
                 gral_next_state = SEND_INFO_TO_PC;
-                //agregar estado last instruction
             end 
         end
 
@@ -169,6 +173,7 @@ always @(*) begin
         SEND_INFO_TO_PC: begin
             if(~step_mode) begin // termino la ejecucion en modo continuo
                 o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
+                last_intr_count <= 2'b00;
                 gral_next_state = GRAL_IDLE;
             end else begin
                 if (i_program_end) begin
