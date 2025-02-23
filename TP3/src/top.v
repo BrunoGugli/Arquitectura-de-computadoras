@@ -5,7 +5,9 @@ module top_pipeline#(
     input wire i_clk,
     input wire i_reset,
     input wire i_rx, // Entrada de datos serial desde el testbench
-)
+    output wire o_tx // Salida de datos serial hacia el testbench
+
+);
 
     // Señales del UART
     wire baud_tick;
@@ -37,5 +39,14 @@ module top_pipeline#(
         .o_rx_done(o_rx_done),// Señal de salida cuando la recepción ha terminado
         .o_data(rx_data)      // Datos recibidos 
     );
+
+    // Instancia de la debug unit
+    debug_unit u_debug_unit (
+        .i_clk(i_clk),
+        .i_reset(i_reset),
+        .i_data_ready(o_rx_done), // Señal que indica que la recepción ha terminado
+        .i_data(rx_data) // Datos recibidos
+    );
+
 
 endmodule

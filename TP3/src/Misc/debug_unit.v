@@ -30,31 +30,31 @@ module debug_unit(
 )
 
 
-// Estados
-localparam [2:0] GRAL_IDLE          = 4'b0000;
-localparam [2:0] LO_IDLE            = 4'b0001;
-localparam [2:0] LO_ASSIGN          = 4'b0010;
-localparam [2:0] LO_INSTR_LOADED    = 4'b0011;
-localparam [2:0] CNT_EXEC           = 4'b0100;
-localparam [2:0] SEND_INFO_TO_PC    = 4'b0101;
-localparam [2:0] ST_IDLE            = 4'b0110;
-localparam [2:0] ST_ASSIGN          = 4'b0111;
-localparam [2:0] ST_STAGE_EXECUTED  = 4'b1000;
+// Estado3
+localparam [3:0] GRAL_IDLE          = 4'b0000;
+localparam [3:0] LO_IDLE            = 4'b0001;
+localparam [3:0] LO_ASSIGN          = 4'b0010;
+localparam [3:0] LO_INSTR_LOADED    = 4'b0011;
+localparam [3:0] CNT_EXEC           = 4'b0100;
+localparam [3:0] SEND_INFO_TO_PC    = 4'b0101;
+localparam [3:0] ST_IDLE            = 4'b0110;
+localparam [3:0] ST_ASSIGN          = 4'b0111;
+localparam [3:0] ST_STAGE_EXECUTED  = 4'b1000;
 
 // Manejo de estados
 reg [3:0] gral_state, gral_next_state;
 
 // fixed message - GRAL
-localparam [31:0] load_mode = "\0lom";
-localparam [31:0] cont_mode = "\0com";
-localparam [31:0] step_mode = "\0stm";
+localparam [31:0] load_mode_msg = "\0lom";
+localparam [31:0] cont_mode_msg = "\0com";
+localparam [31:0] step_mode_msg = "\0stm";
 
 // fixed message - LO
 localparam [31:0] end_instr = 32'hffffffff;
 
 // fixed message - ST
-localparam [31:0] cancel_step = "clst";
-localparam [31:0] next_step = "nxst";
+localparam [31:0] cancel_step_msg = "clst";
+localparam [31:0] next_step_msg = "nxst";
 
 // Flags de control
 reg prog_ready;
@@ -78,8 +78,7 @@ always @(posedge i_clk) begin
         o_write_instruction_flag <= 1'b0;
         o_instruction_to_write <= 32'h00000000;
         o_address_to_write_inst <= 32'h00000000;
-        last_instr <= 0;
-        first_instr_received <= 0;
+        last_instr_received <= 0;
     end else begin
         gral_state <= gral_next_state;
 
@@ -132,9 +131,9 @@ always @(posedge i_clk) begin
             end
 
             ST_ASSIGN: begin
-                if(i_data == next_step) begin
+                if(i_data == next_step_msg) begin
                     o_halt <= 1'b0;
-                end else if(i_data == cancel_step) begin
+                end else if(i_data == cancel_step_msg) begin
                     canceled_step <= 1;
                 end
             end
@@ -154,11 +153,11 @@ always @(*) begin
     case (gral_state)
         GRAL_IDLE: begin
             if (i_data_ready) begin
-                if (i_data == charge_mode) begin
+                if (i_data == load_mode_msg) begin
                     gral_next_state = LO_IDLE;
-                end else if (i_data == cont_mode && prog_ready) begin
+                end else if (i_data == cont_mode_msg && prog_ready) begin
                     gral_next_state = CNT_EXEC;
-                end else if (i_data == step_mode && prog_ready) begin
+                end else if (i_data == step_mode_msg && prog_ready) begin
                     gral_next_state = ST_IDLE;
                 end
             end
@@ -171,7 +170,7 @@ always @(*) begin
         end
 
         LO_ASSIGN: begin
-            gral_next_state = LO_INTR_LOADED;
+            gral_next_state = LO_INSTR_LOADED;
         end
 
         LO_INSTR_LOADED: begin
@@ -222,7 +221,7 @@ always @(*) begin
                 if(i_program_end) begin
                     o_stall <= 1'b1;
                 end
-                gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la ejecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step
+                gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la ejecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step_msg
             end
         end
     endcase
