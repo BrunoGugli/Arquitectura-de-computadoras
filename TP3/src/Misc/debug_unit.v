@@ -176,13 +176,7 @@ always @(*) begin
                 last_intr_count <= 2'b00;
                 gral_next_state = GRAL_IDLE;
             end else begin
-                if (i_program_end) begin
-                    o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
-                    step_mode <= 0;
-                    gral_next_state = GRAL_IDLE;
-                end else begin
-                    gral_next_state = ST_IDLE;
-                end
+                gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la efecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step
             end
         end
     endcase

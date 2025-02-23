@@ -90,7 +90,7 @@ module instruction_decode (
         .o_data_read2(RB)
     );
 
-    // Logica para hacer una clase de halt solo en IF/ID y ID/EX
+    // Logica para ignorar todas las siguientes instrucciones una vez llegue la END a ID
     always @(*) begin
         if(i_instruction == END_INSTR) begin
             program_finished = 1;
