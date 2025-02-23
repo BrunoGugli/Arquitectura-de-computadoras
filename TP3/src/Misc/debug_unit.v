@@ -24,17 +24,18 @@ module debug_unit(
 
 
 // Estados
-localparam [2:0] GRAL_IDLE          = 2'b000;
-localparam [2:0] CH_IDLE            = 2'b001;
-localparam [2:0] CH_ASSIGN          = 2'b010;
-localparam [2:0] CNT_EXEC           = 2'b011;
-localparam [2:0] SEND_INFO_TO_PC    = 2'b100;
-localparam [2:0] ST_IDLE            = 2'b101;
-localparam [2:0] ST_ASSIGN          = 2'b110;
-localparam [2:0] ST_STAGE_EXECUTED  = 2'b111;
+localparam [2:0] GRAL_IDLE          = 4'b0000;
+localparam [2:0] CH_IDLE            = 4'b0001;
+localparam [2:0] CH_ASSIGN          = 4'b0010;
+localparam [2:0] CH_INSTR_CHARGED    = 4'b0011;
+localparam [2:0] CNT_EXEC           = 4'b0100;
+localparam [2:0] SEND_INFO_TO_PC    = 4'b0101;
+localparam [2:0] ST_IDLE            = 4'b0110;
+localparam [2:0] ST_ASSIGN          = 4'b0111;
+localparam [2:0] ST_STAGE_EXECUTED  = 4'b1000;
 
 // Manejo de estados
-reg [2:0] gral_state, gral_next_state;
+reg [3:0] gral_state, gral_next_state;
 
 // fixed message - GRAL
 localparam [31:0] charge_mode = "\0chm";
@@ -53,6 +54,7 @@ reg prog_ready;
 reg step_mode;
 reg canceled_step;
 reg [1:0] last_intr_count;
+reg last_instr_received;
 
 // Manejo de estados - GRAL
 always @(posedge i_clk) begin
@@ -67,6 +69,8 @@ always @(posedge i_clk) begin
         o_write_instruction_flag <= 1'b0;
         o_instruction_to_write <= 32'h00000000;
         o_address_to_write_inst <= 32'h00000000;
+        last_instr <= 0;
+        first_instr_received <= 0;
     end else begin
         gral_state <= gral_next_state;
 
@@ -75,6 +79,9 @@ always @(posedge i_clk) begin
                 o_halt <= 1'b1;
                 o_reset <= 1'b0; // para cuando se haga este 0, el pipeline ya va a haber leido el reset como 1 en el flanco de subida
                 o_stall <= 1'b0;
+                last_instr_received <= 0;   // la reiniciamos por si venimos de CH_INTR_CHARGED
+                canceled_step <= 0;         // la reiniciamos por si venimos de ST_ASSIGN
+                step_mode <= 0;             // la reiniciamos por si venimos de ST_ASSIGN
             end
 
             CH_IDLE: begin
@@ -82,9 +89,21 @@ always @(posedge i_clk) begin
             end
 
             CH_ASSIGN: begin
-                // TODO: implementar la lógica para cargar las instrucciones en la memoria de instrucciones
+                o_write_instruction_flag <= 1'b1;
+                o_instruction_to_write <= i_data;
                 if (i_data == end_instr) begin
+                    last_instr_received <= 1;
+                end
+            end
+
+            CH_INSTR_CHARGED: begin
+                o_write_instruction_flag <= 1'b0;
+                if(last_instr_received) begin
+                    o_address_to_write_inst <= 32'h00000000;
                     prog_ready <= 1;
+
+                end else begin
+                    o_address_to_write_inst <= o_address_to_write_inst + 4;
                 end
             end
 
@@ -143,11 +162,15 @@ always @(*) begin
         end
 
         CH_ASSIGN: begin
-            if (prog_ready) begin
+            gral_next_state = CH_INTR_CHARGED;
+        end
+
+        CH_INSTR_CHARGED: begin
+            if (last_instr_received) begin
+                o_reset <= 1'b1; // pq estamos volviendo a idle
                 gral_next_state = GRAL_IDLE;
-                o_reset = 1'b1;
             end else begin
-                gral_next_state = CH_IDLE; // Si el programa no está listo, volvemos a CH_IDLE a esperar la sig instruccion
+                gral_next_state = CH_IDLE;
             end
         end
 
@@ -155,7 +178,7 @@ always @(*) begin
             if (i_program_end) begin
                 o_stall <= 1'b1;
                 if (last_intr_count == 3) begin
-                    o_halt <= 1'b1;
+                    o_halt <= 1'b1; // tiene que ser aca para que el pipeline no siga propagando instrucciones en el proximo ciclo de clock
                     o_stall <= 1'b0;
                     gral_next_state = SEND_INFO_TO_PC;
                 end
@@ -173,8 +196,6 @@ always @(*) begin
                 gral_next_state = ST_STAGE_EXECUTED;
             end else if (canceled_step) begin
                 o_reset <= 1'b1;
-                canceled_step <= 0;
-                step_mode <= 0;
                 gral_next_state = GRAL_IDLE;
             end
         end
