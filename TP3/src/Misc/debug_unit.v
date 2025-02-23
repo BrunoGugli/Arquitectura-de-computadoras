@@ -13,13 +13,20 @@ module debug_unit(
     input wire [138:0] i_ID_EX_latch,
     input wire [75:0] i_EX_MEM_latch,
     input wire [70:0] i_MEM_WB_latch,
+    input wire i_ID_jump,
+    input wire [31:0] i_ID_jump_address,
+    input wire [4:0] i_ID_rs,
+    input wire [4:0] i_ID_rt,
+    input wire [4:0] i_EX_reg_dest,
+    input wire [31:0] i_register_content,
     
     output reg o_halt,
     output reg o_reset, // para resetear el pipeline (en realidad es para resetear el pc) cuando se vuelve a IDLE
     output reg o_stall,
     output reg o_write_instruction_flag,
     output reg [31:0] o_instruction_to_write,
-    output reg [31:0] o_address_to_write_inst
+    output reg [31:0] o_address_to_write_inst,
+    output reg [4:0] o_reg_add_to_read
 )
 
 
@@ -55,6 +62,8 @@ reg step_mode;
 reg canceled_step;
 reg [1:0] last_intr_count;
 reg last_instr_received;
+
+reg [31:0] registers [31:0];
 
 // Manejo de estados - GRAL
 always @(posedge i_clk) begin
@@ -115,6 +124,7 @@ always @(posedge i_clk) begin
 
             SEND_INFO_TO_PC: begin
                 // TODO: implementar toda la logica de mandarle toda la info del pipeline a la pc por uart
+                
             end
 
             ST_IDLE: begin

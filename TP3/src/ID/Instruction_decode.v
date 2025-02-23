@@ -51,6 +51,9 @@ module instruction_decode (
     output wire [4:0] o_rs_wire,
     output wire [4:0] o_rt_wire, // Estos dos para la hazard unit
 
+    // Debug unit
+    input wire [4:0] i_reg_read,
+    output wire [31:0] o_reg_content,
     output wire o_program_end
 );
 
@@ -61,6 +64,7 @@ module instruction_decode (
     wire [31:0] RB;
     wire [31:0] inmediato;
     wire [5:0] funct;
+    wire [4:0] rs_to_bank;
 
     localparam NOP = 32'h00000000;
     localparam END_INSTR = 32'hffffffff;
@@ -79,7 +83,7 @@ module instruction_decode (
         .i_clk(i_clk),
         .i_reset(i_reset),
         .i_write_enable(i_ctl_wb_reg_write_wb),
-        .i_read_reg1(rs),
+        .i_read_reg1(rs_to_bank),
         .i_read_reg2(rt),
         .i_write_reg(i_write_addr_wb),
         .i_data_write(i_write_data_wb),
@@ -284,5 +288,8 @@ module instruction_decode (
     assign o_rs_wire = rs; // para la hazard unit
     assign o_rt_wire = rt; // para la hazard unit
     assign o_program_end = i_instruction == END_INSTR;
+    // debug
+    assign rs_to_bank = i_halt ? i_reg_read : rs;
+    assign o_reg_content = RA;
 
 endmodule
