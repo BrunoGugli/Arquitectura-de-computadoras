@@ -21,8 +21,7 @@ localparam [1:0] stop = 2'b11;
 // Registers for the state machine
 reg [1:0] state, next_state; // Current state and next state
 reg [3:0] tick_counter, next_tick_counter; // Tick counters
-reg [5:0] data_counter, next_data_counter; // C
-ount from 0 to DATA_BITS-1 (5 bits for 32 bits)
+reg [5:0] data_counter, next_data_counter; // Count from 0 to DATA_BITS-1 (5 bits for 32 bits)
 reg [DATA_BITS-1:0] data_reg, next_data_reg; // Data register whit DATA_BITS bits
 
 // State machine
