@@ -47,7 +47,8 @@ module instruction_decode_tb;
     wire [31:0] o_jump_address;
     wire [1:0] o_reg_in_jump; // 00 -> not jump; 01 -> jump with rs and rt; 10 -> jump with rs only
 
-    wire o_halt;
+    // end
+    wire o_program_end;
 
     instruction_decode uut (
         .i_clk(i_clk),
@@ -80,7 +81,7 @@ module instruction_decode_tb;
         .o_jump(o_jump),
         .o_jump_address(o_jump_address),
         .o_reg_in_jump(o_reg_in_jump),
-        .o_halt(o_halt)
+        .o_program_end(o_program_end)
     );
 
     // Generación de reloj
@@ -159,6 +160,22 @@ module instruction_decode_tb;
         i_pc = 32'h00000020;
 
         #10;
+        // Test 9: END
+        i_instruction = 32'b111111_11111_11111_11111_11111_111111;
+        i_pc = 32'h00000024;
+
+        #10;
+        //Test 10: ADDI $2, $3, 10
+        i_instruction = 32'b001000_00011_00010_0000000000001010;
+        i_pc = 32'h00000028;
+
+        #10;
+        //Test 11: ADDI $2, $3, -10
+        i_instruction = 32'b001000_00011_00010_1111111111110110;
+        i_pc = 32'h0000002C;
+
+        #1000000;
+        $finish;
 
     end
 
