@@ -25,9 +25,9 @@ module debug_unit(
 
 // Estados
 localparam [2:0] GRAL_IDLE          = 4'b0000;
-localparam [2:0] CH_IDLE            = 4'b0001;
-localparam [2:0] CH_ASSIGN          = 4'b0010;
-localparam [2:0] CH_INSTR_CHARGED    = 4'b0011;
+localparam [2:0] LO_IDLE            = 4'b0001;
+localparam [2:0] LO_ASSIGN          = 4'b0010;
+localparam [2:0] LO_INSTR_LOADED    = 4'b0011;
 localparam [2:0] CNT_EXEC           = 4'b0100;
 localparam [2:0] SEND_INFO_TO_PC    = 4'b0101;
 localparam [2:0] ST_IDLE            = 4'b0110;
@@ -38,11 +38,11 @@ localparam [2:0] ST_STAGE_EXECUTED  = 4'b1000;
 reg [3:0] gral_state, gral_next_state;
 
 // fixed message - GRAL
-localparam [31:0] charge_mode = "\0chm";
+localparam [31:0] load_mode = "\0lom";
 localparam [31:0] cont_mode = "\0com";
 localparam [31:0] step_mode = "\0stm";
 
-// fixed message - CH
+// fixed message - LO
 localparam [31:0] end_instr = 32'hffffffff;
 
 // fixed message - ST
@@ -79,16 +79,16 @@ always @(posedge i_clk) begin
                 o_halt <= 1'b1;
                 o_reset <= 1'b0; // para cuando se haga este 0, el pipeline ya va a haber leido el reset como 1 en el flanco de subida
                 o_stall <= 1'b0;
-                last_instr_received <= 0;   // la reiniciamos por si venimos de CH_INTR_CHARGED
+                last_instr_received <= 0;   // la reiniciamos por si venimos de LO_INTR_LOADED
                 canceled_step <= 0;         // la reiniciamos por si venimos de ST_ASSIGN
                 step_mode <= 0;             // la reiniciamos por si venimos de ST_ASSIGN
             end
 
-            CH_IDLE: begin
+            LO_IDLE: begin
                 prog_ready <= 0;
             end
 
-            CH_ASSIGN: begin
+            LO_ASSIGN: begin
                 o_write_instruction_flag <= 1'b1;
                 o_instruction_to_write <= i_data;
                 if (i_data == end_instr) begin
@@ -96,12 +96,11 @@ always @(posedge i_clk) begin
                 end
             end
 
-            CH_INSTR_CHARGED: begin
+            LO_INSTR_LOADED: begin
                 o_write_instruction_flag <= 1'b0;
                 if(last_instr_received) begin
                     o_address_to_write_inst <= 32'h00000000;
                     prog_ready <= 1;
-
                 end else begin
                     o_address_to_write_inst <= o_address_to_write_inst + 4;
                 end
@@ -146,7 +145,7 @@ always @(*) begin
         GRAL_IDLE: begin
             if (i_data_ready) begin
                 if (i_data == charge_mode) begin
-                    gral_next_state = CH_IDLE;
+                    gral_next_state = LO_IDLE;
                 end else if (i_data == cont_mode && prog_ready) begin
                     gral_next_state = CNT_EXEC;
                 end else if (i_data == step_mode && prog_ready) begin
@@ -155,22 +154,22 @@ always @(*) begin
             end
         end
 
-        CH_IDLE: begin
+        LO_IDLE: begin
             if (i_data_ready) begin
-                gral_next_state = CH_ASSIGN;
+                gral_next_state = LO_ASSIGN;
             end
         end
 
-        CH_ASSIGN: begin
-            gral_next_state = CH_INTR_CHARGED;
+        LO_ASSIGN: begin
+            gral_next_state = LO_INTR_LOADED;
         end
 
-        CH_INSTR_CHARGED: begin
+        LO_INSTR_LOADED: begin
             if (last_instr_received) begin
                 o_reset <= 1'b1; // pq estamos volviendo a idle
                 gral_next_state = GRAL_IDLE;
             end else begin
-                gral_next_state = CH_IDLE;
+                gral_next_state = LO_IDLE;
             end
         end
 
