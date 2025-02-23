@@ -15,7 +15,11 @@ module debug_unit(
     input wire [70:0] i_MEM_WB_latch,
     
     output reg o_halt,
-    output reg o_reset // para resetear el pipeline (en realidad es para resetear el pc) cuando se vuelve a IDLE
+    output reg o_reset, // para resetear el pipeline (en realidad es para resetear el pc) cuando se vuelve a IDLE
+    output reg o_stall,
+    output reg o_write_instruction_flag,
+    output reg [31:0] o_instruction_to_write,
+    output reg [31:0] o_address_to_write_inst
 )
 
 
@@ -59,6 +63,10 @@ always @(posedge i_clk) begin
         step_mode <= 0;
         canceled_step <= 0;
         last_intr_count <= 2'b00;
+        o_stall <= 1'b0;
+        o_write_instruction_flag <= 1'b0;
+        o_instruction_to_write <= 32'h00000000;
+        o_address_to_write_inst <= 32'h00000000;
     end else begin
         gral_state <= gral_next_state;
 
@@ -66,10 +74,11 @@ always @(posedge i_clk) begin
             GRAL_IDLE: begin
                 o_halt <= 1'b1;
                 o_reset <= 1'b0; // para cuando se haga este 0, el pipeline ya va a haber leido el reset como 1 en el flanco de subida
+                o_stall <= 1'b0;
             end
 
             CH_IDLE: begin
-                prog_ready <= 0; // creo que no hace falta esto
+                prog_ready <= 0;
             end
 
             CH_ASSIGN: begin
@@ -143,9 +152,13 @@ always @(*) begin
         end
 
         CNT_EXEC: begin
-            if (i_program_end && last_intr_count == 3) begin
-                o_halt <= 1'b1;
-                gral_next_state = SEND_INFO_TO_PC;
+            if (i_program_end) begin
+                o_stall <= 1'b1;
+                if (last_intr_count == 3) begin
+                    o_halt <= 1'b1;
+                    o_stall <= 1'b0;
+                    gral_next_state = SEND_INFO_TO_PC;
+                end
             end 
         end
 
@@ -159,7 +172,7 @@ always @(*) begin
             if (o_halt == 1'b0) begin
                 gral_next_state = ST_STAGE_EXECUTED;
             end else if (canceled_step) begin
-                o_reset = 1'b1;
+                o_reset <= 1'b1;
                 canceled_step <= 0;
                 step_mode <= 0;
                 gral_next_state = GRAL_IDLE;
@@ -176,7 +189,10 @@ always @(*) begin
                 last_intr_count <= 2'b00;
                 gral_next_state = GRAL_IDLE;
             end else begin
-                gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la efecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step
+                if(i_program_end) begin
+                    o_stall <= 1'b1;
+                end
+                gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la ejecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step
             end
         end
     endcase
