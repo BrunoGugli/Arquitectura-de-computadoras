@@ -1,8 +1,0 @@
-INFO: [VRFC 10-2263] Analyzing Verilog file "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/UART/baud_rate_gen.v" into library xil_defaultlib
-INFO: [VRFC 10-311] analyzing module baud_rate_gen
-INFO: [VRFC 10-2263] Analyzing Verilog file "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/Misc/debug_unit.v" into library xil_defaultlib
-INFO: [VRFC 10-311] analyzing module debug_unit
-INFO: [VRFC 10-2263] Analyzing Verilog file "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/top.v" into library xil_defaultlib
-INFO: [VRFC 10-311] analyzing module top_pipeline
-INFO: [VRFC 10-2263] Analyzing Verilog file "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/tb/top_tb.v" into library xil_defaultlib
-INFO: [VRFC 10-311] analyzing module tb_top_pipeline
