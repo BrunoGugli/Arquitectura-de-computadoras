@@ -18,7 +18,26 @@ module debug_unit(
     input wire [4:0] i_ID_rs,
     input wire [4:0] i_ID_rt,
     input wire [4:0] i_EX_reg_dest,
+
+    // registers for latches
+    /*
+    wire [31:0] IF_ID_latch_1,
+    wire [31:0] IF_ID_latch_2,
+    wire [31:0] ID_EX_latch_1,
+    wire [31:0] ID_EX_latch_2,
+    wire [31:0] ID_EX_latch_3,
+    wire [31:0] ID_EX_latch_4,
+    wire [31:0] EX_MEM_latch1_ID_EX_latch_5 (11 lsb del ID_EX, 21 msb del EX_MEM),
+    wire [31:0] EX_MEM_latch2,
+    wire [31:0] MEM_WB_latch1_EX_MEM_latch_3 (23 lsb del EX_MEM, 9 msb del MEM_WB),
+    wire [31:0] MEM_WB_latch2,
+    wire [31:0] ID_jump_MEM_WB_latch3 (30 lsb del MEM_WB, el segundo msb del ID_jump, el msb lo ignoramos),
+    wire [31:0] ID_jump_address,
+    wire [31:0] ID_rt_rs_EX_reg_dest (quedan 17 bits sin usar que ignoramos)
+    */
+
     input wire [31:0] i_register_content,
+    input wire [31:0] i_mem_data_content,
     
     output reg o_halt,
     output reg o_reset, // para resetear el pipeline (en realidad es para resetear el pc) cuando se vuelve a IDLE
@@ -27,6 +46,7 @@ module debug_unit(
     output reg [31:0] o_instruction_to_write,
     output reg [31:0] o_address_to_write_inst,
     output reg [4:0] o_reg_add_to_read,
+    output reg [31:0] o_addr_to_read_mem_data,
     output reg [31:0] o_data_to_fifo
 )
 
@@ -131,9 +151,8 @@ always @(posedge i_clk) begin
                 // TODO: implementar toda la logica de mandarle toda la info del pipeline a la pc por uart
                 if(registers_sent < 32) begin
                     o_reg_add_to_read = registers_sent;
-                    registers_sent = registers_sent + 1;
                 end else if(mem_data_sent < 32) begin
-                    // implementar la logica para agarrar la info de la memoria
+                    o_addr_to_read_mem_data = mem_data_sent;
                 end
             end
 
@@ -225,7 +244,11 @@ always @(*) begin
 
         SEND_INFO_TO_PC: begin
             if (registers_sent < 32) begin
-                o_data_to_fifo <= i_register_content;
+                o_data_to_fifo = i_register_content;
+                registers_sent = registers_sent + 1;
+            end else if(mem_data_sent < 32) begin
+                o_data_to_fifo = i_mem_data_content;
+                mem_data_sent = mem_data_sent + 1;
             end else begin
                 if(~step_mode) begin // termino la ejecucion en modo continuo
                     o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
