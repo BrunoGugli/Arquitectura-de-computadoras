@@ -1,7 +1,7 @@
 module fifo_transmitter
 #(
-    parameter DATA_WIDTH = 8, // data buffer bits
-    parameter FIFO_DEPTH = 16 // FIFO depth
+    parameter DATA_WIDTH = 32, // data buffer bits
+    parameter FIFO_DEPTH = 75 // FIFO depth
 )
 (
     input wire i_clk, i_reset,

@@ -26,7 +26,8 @@ module debug_unit(
     output reg o_write_instruction_flag,
     output reg [31:0] o_instruction_to_write,
     output reg [31:0] o_address_to_write_inst,
-    output reg [4:0] o_reg_add_to_read
+    output reg [4:0] o_reg_add_to_read,
+    output reg [31:0] o_data_to_fifo
 )
 
 
@@ -63,7 +64,9 @@ reg canceled_step;
 reg [1:0] last_intr_count;
 reg last_instr_received;
 
-reg [31:0] registers [31:0];
+reg [4:0] registers_sent; // 32 registers
+reg [4:0] mem_data_sent; // 32 data
+reg [3:0]latches_sent; // 13 32-bit data
 
 // Manejo de estados - GRAL
 always @(posedge i_clk) begin
@@ -79,6 +82,9 @@ always @(posedge i_clk) begin
         o_instruction_to_write <= 32'h00000000;
         o_address_to_write_inst <= 32'h00000000;
         last_instr_received <= 0;
+        registers_sent <= 0;
+        mem_data_set <= 0;
+        latches_sent <= 0;
     end else begin
         gral_state <= gral_next_state;
 
@@ -123,7 +129,12 @@ always @(posedge i_clk) begin
 
             SEND_INFO_TO_PC: begin
                 // TODO: implementar toda la logica de mandarle toda la info del pipeline a la pc por uart
-                
+                if(registers_sent < 32) begin
+                    o_reg_add_to_read = registers_sent;
+                    registers_sent = registers_sent + 1;
+                end else if(mem_data_sent < 32) begin
+                    // implementar la logica para agarrar la info de la memoria
+                end
             end
 
             ST_IDLE: begin
@@ -213,15 +224,19 @@ always @(*) begin
         end
 
         SEND_INFO_TO_PC: begin
-            if(~step_mode) begin // termino la ejecucion en modo continuo
-                o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
-                last_intr_count <= 2'b00;
-                gral_next_state = GRAL_IDLE;
+            if (registers_sent < 32) begin
+                o_data_to_fifo <= i_register_content;
             end else begin
-                if(i_program_end) begin
-                    o_stall <= 1'b1;
+                if(~step_mode) begin // termino la ejecucion en modo continuo
+                    o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
+                    last_intr_count <= 2'b00;
+                    gral_next_state = GRAL_IDLE;
+                end else begin
+                    if(i_program_end) begin
+                        o_stall <= 1'b1;
+                    end
+                    gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la ejecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step_msg
                 end
-                gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la ejecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step_msg
             end
         end
     endcase
