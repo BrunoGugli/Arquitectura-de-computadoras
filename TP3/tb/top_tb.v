@@ -6,7 +6,6 @@ module tb_top_pipeline();
     reg tb_clk;               // Reloj del sistema
     reg tb_reset;             // Señal de reset
     reg tb_rx;                // Señal de datos RX
-    wire tb_rx_done;          // Indica cuando se completó la recepción
     wire [31:0] tb_data;       // Dato recibido por el UART (32 bits)
     wire tb_tx;               // Señal de datos TX
 
@@ -21,7 +20,7 @@ module tb_top_pipeline();
     // Generación del reloj de 50 MHz (periodo 20 ns)
     initial begin
         tb_clk = 0;
-        forever #10 tb_clk = ~tb_clk;
+        forever #5 tb_clk = ~tb_clk;
     end
 
     // Simulación de una trama UART: bit de inicio (0), 10 bits de datos, bit de parada (1)
@@ -88,17 +87,11 @@ module tb_top_pipeline();
         #(104160); 
 
         // Esperar la recepción del dato
-        #200000;
+        #2000000;
 
         // Finalizamos la simulación
         $finish;
     end
 
-    // Monitor de las señales de salida
-    always @(posedge tb_clk) begin
-        if (tb_rx_done) begin
-            $display("Dato recibido: %b, Tiempo: %0t", tb_data, $time);
-        end
-    end
 
 endmodule

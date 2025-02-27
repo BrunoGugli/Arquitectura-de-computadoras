@@ -11,7 +11,7 @@ module top_pipeline#(
 
     // Señales del UART
     wire baud_tick;
-    wire o_rx_done;
+    wire rx_done;
     wire [DATA_BITS-1:0] rx_data;
 
     // Instancia del generador de tasa de baudios
@@ -36,7 +36,7 @@ module top_pipeline#(
         .i_reset(i_reset),    // Conectar a la señal de reset
         .i_rx(i_rx),          // Conectar a la línea serial de entrada
         .i_bd_tick(baud_tick),// Conectar el baud tick desde baud_rate_gen
-        .o_rx_done(o_rx_done),// Señal de salida cuando la recepción ha terminado
+        .o_rx_done(rx_done),// Señal de salida cuando la recepción ha terminado
         .o_data(rx_data)      // Datos recibidos 
     );
 
@@ -44,7 +44,7 @@ module top_pipeline#(
     debug_unit u_debug_unit (
         .i_clk(i_clk),
         .i_reset(i_reset),
-        .i_data_ready(o_rx_done), // Señal que indica que la recepción ha terminado
+        .i_data_ready(rx_done), // Señal que indica que la recepción ha terminado
         .i_data(rx_data) // Datos recibidos
     );
 
