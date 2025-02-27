@@ -1,0 +1,9 @@
+0.7
+2020.2
+May  7 2023
+15:10:42
+/home/franco/Escritorio/Arqui/TP3_PIPELINE/TP3_PIPELINE.sim/sim_1/behav/xsim/glbl.v,1683266558,verilog,,,,glbl,,,,,,,,
+/home/franco/Escritorio/Arquitectura-de-computadoras/TP3/src/ID/Instruction_decode.v,1739666896,verilog,,,,instruction_decode,,,,,,,,
+/home/franco/Escritorio/Arquitectura-de-computadoras/TP3/src/ID/register_bank.v,1739665741,verilog,,/home/franco/Escritorio/Arquitectura-de-computadoras/TP3/src/ID/Instruction_decode.v,,register_bank,,,,,,,,
+/home/franco/Escritorio/Arquitectura-de-computadoras/TP3/src/xilinx_one_port_ram_async.v,1732739205,verilog,,/home/franco/Escritorio/Arquitectura-de-computadoras/TP3/tb/if_tb.v,,xilinx_one_port_ram_async,,,,,,,,
+/home/franco/Escritorio/Arquitectura-de-computadoras/TP3/tb/if_tb.v,1732749717,verilog,,,,tb_fill_and_read_memory,,,,,,,,
