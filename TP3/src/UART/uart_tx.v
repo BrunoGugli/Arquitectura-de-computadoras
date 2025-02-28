@@ -1,6 +1,6 @@
 module uart_transmitter
 #(
-    parameter DATA_BITS = 8,         // Number of data bits
+    parameter DATA_BITS = 32,         // Number of data bits
     parameter STP_BITS_TICKS = 16    // One complete stop bit (16 ticks of oversampling clock)
 )
 (
@@ -23,7 +23,7 @@ module uart_transmitter
     // Signal declaration
     reg [1:0] state, next_state;
     reg [3:0] tick_counter, next_tick_counter;
-    reg [2:0] data_counter, next_data_counter;
+    reg [4:0] data_counter, next_data_counter;
     reg [DATA_BITS-1:0] data_reg, next_data_reg;
     reg tx_reg, next_tx_reg;
 

@@ -48,7 +48,7 @@ module debug_unit(
     output reg [4:0] o_reg_add_to_read,
     output reg [31:0] o_addr_to_read_mem_data,
     output reg [31:0] o_data_to_fifo
-)
+);
 
 
 // Estado3

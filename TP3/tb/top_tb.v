@@ -42,37 +42,28 @@ module tb_top_pipeline();
         tb_rx = 0;
         #(104160); // Esperamos 1 periodo de bit (9600 baudios = ~104160 ns por bit)
 
-        // Enviamos el "\0" 00000000
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        tb_rx = 0; #(104160);
-        
-        // Enviamos el "l" 01101100
+        // Enviamos el "m" 01101101 (Reversed: 10110110)
+        tb_rx = 1; #(104160);
         tb_rx = 0; #(104160);
         tb_rx = 1; #(104160);
         tb_rx = 1; #(104160);
         tb_rx = 0; #(104160);
         tb_rx = 1; #(104160);
         tb_rx = 1; #(104160);
-        tb_rx = 0; #(104160);
         tb_rx = 0; #(104160);
 
-        // Enviamos el "o" 01101111
+        // Enviamos el "o" 01101111 (Reversed: 11110110)
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
         tb_rx = 0; #(104160);
         tb_rx = 1; #(104160);
         tb_rx = 1; #(104160);
         tb_rx = 0; #(104160);
-        tb_rx = 1; #(104160);
-        tb_rx = 1; #(104160);
-        tb_rx = 1; #(104160);
-        tb_rx = 1; #(104160);
 
-        // Enviamos el "m" 01101101
+        // Enviamos el "l" 01101100 (Reversed: 00110110)
+        tb_rx = 0; #(104160);
         tb_rx = 0; #(104160);
         tb_rx = 1; #(104160);
         tb_rx = 1; #(104160);
@@ -80,11 +71,29 @@ module tb_top_pipeline();
         tb_rx = 1; #(104160);
         tb_rx = 1; #(104160);
         tb_rx = 0; #(104160);
-        tb_rx = 1; #(104160);
+
+        // Enviamos el "\0" 00000000 (Reversed: 00000000)
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
 
         // Bit de parada (1)
         tb_rx = 1;
         #(104160); 
+
+        // 00100000 00000001 00000000 00000010; instrucción ADDI x1, x0, 2
+        // 01000000 00000000 10000000 00000100; 
+
+        // Bit de inicio (0)
+        @(posedge tb_clk);
+        tb_rx = 0; #(104160);
+
+
 
         // Esperar la recepción del dato
         #2000000;
