@@ -19,23 +19,6 @@ module debug_unit(
     input wire [4:0] i_ID_rt,
     input wire [4:0] i_EX_reg_dest,
 
-    // registers for latches
-    /*
-    wire [31:0] IF_ID_latch_1,
-    wire [31:0] IF_ID_latch_2,
-    wire [31:0] ID_EX_latch_1,
-    wire [31:0] ID_EX_latch_2,
-    wire [31:0] ID_EX_latch_3,
-    wire [31:0] ID_EX_latch_4,
-    wire [31:0] EX_MEM_latch1_ID_EX_latch_5 (11 lsb del ID_EX, 21 msb del EX_MEM),
-    wire [31:0] EX_MEM_latch2,
-    wire [31:0] MEM_WB_latch1_EX_MEM_latch_3 (23 lsb del EX_MEM, 9 msb del MEM_WB),
-    wire [31:0] MEM_WB_latch2,
-    wire [31:0] ID_jump_MEM_WB_latch3 (30 lsb del MEM_WB, el segundo msb del ID_jump, el msb lo ignoramos),
-    wire [31:0] ID_jump_address,
-    wire [31:0] ID_rt_rs_EX_reg_dest (quedan 17 bits sin usar que ignoramos)
-    */
-
     input wire [31:0] i_register_content,
     input wire [31:0] i_mem_data_content,
     
@@ -50,6 +33,20 @@ module debug_unit(
     output reg [31:0] o_data_to_fifo
 )
 
+// Wires para los latches
+wire [31:0] IF_ID_latch1,
+wire [31:0] IF_ID_latch2,
+wire [31:0] ID_EX_latch1,
+wire [31:0] ID_EX_latch2,
+wire [31:0] ID_EX_latch3,
+wire [31:0] ID_EX_latch4,
+wire [31:0] EX_MEM_latch1_ID_EX_latch5,
+wire [31:0] EX_MEM_latch2,
+wire [31:0] MEM_WB_latch1_EX_MEM_latch3,
+wire [31:0] MEM_WB_latch2,
+wire [31:0] MEM_WB_latch3,
+wire [31:0] ID_jump_address,
+wire [31:0] ID_jump_EX_reg_dest_ID_rt_ID_rs,
 
 // Estado3
 localparam [3:0] GRAL_IDLE          = 4'b0000;
@@ -86,7 +83,7 @@ reg last_instr_received;
 
 reg [4:0] registers_sent; // 32 registers
 reg [4:0] mem_data_sent; // 32 data
-reg [3:0]latches_sent; // 13 32-bit data
+reg [3:0] latches_sent; // 13 32-bit data
 
 // Manejo de estados - GRAL
 always @(posedge i_clk) begin
@@ -249,6 +246,49 @@ always @(*) begin
             end else if(mem_data_sent < 32) begin
                 o_data_to_fifo = i_mem_data_content;
                 mem_data_sent = mem_data_sent + 1;
+            end else if(latches_sent < 13) begin
+                    case(latches_sent)
+                        0: begin
+                            o_data_to_fifo = IF_ID_latch1;
+                        end
+                        1: begin
+                            o_data_to_fifo = IF_ID_latch2;
+                        end
+                        2: begin
+                            o_data_to_fifo = ID_EX_latch1;
+                        end
+                        3: begin
+                            o_data_to_fifo = ID_EX_latch2;
+                        end
+                        4: begin
+                            o_data_to_fifo = ID_EX_latch3;
+                        end
+                        5: begin
+                            o_data_to_fifo = ID_EX_latch4;
+                        end
+                        6: begin
+                            o_data_to_fifo = EX_MEM_latch1_ID_EX_latch5;
+                        end
+                        7: begin
+                            o_data_to_fifo = EX_MEM_latch2;
+                        end
+                        8: begin
+                            o_data_to_fifo = MEM_WB_latch1_EX_MEM_latch3;
+                        end
+                        9: begin
+                            o_data_to_fifo = MEM_WB_latch2;
+                        end
+                        10: begin
+                            o_data_to_fifo = MEM_WB_latch3;
+                        end
+                        11: begin
+                            o_data_to_fifo = ID_jump_address;
+                        end
+                        12: begin
+                            o_data_to_fifo = ID_jump_EX_reg_dest_ID_rt_ID_rs;
+                        end
+                    endcase
+                    latches_sent = latches_sent + 1;
             end else begin
                 if(~step_mode) begin // termino la ejecucion en modo continuo
                     o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
@@ -264,4 +304,20 @@ always @(*) begin
         end
     endcase
 end
+
+assign IF_ID_latch1 = i_IF_ID_latch[31:0];
+assign IF_ID_latch2 = i_IF_ID_latch[63:32];
+assign ID_EX_latch1 = i_ID_EX_latch[31:0];
+assign ID_EX_latch2 = i_ID_EX_latch[63:32];
+assign ID_EX_latch3 = i_ID_EX_latch[95:64];
+assign ID_EX_latch4 = i_ID_EX_latch[127:96];
+assign EX_MEM_latch1_ID_EX_latch5 = {i_EX_MEM_latch[20:0], i_ID_EX_latch[138:128]};
+assign EX_MEM_latch2 = i_EX_MEM_latch[52:21];
+assign MEM_WB_latch1_EX_MEM_latch3 = {i_MEM_WB_latch[8:0], i_EX_MEM_latch[75:53]};
+assign MEM_WB_latch2 = i_MEM_WB_latch[40:9];
+assign MEM_WB_latch3 = i_MEM_WB_latch[70:41]; // two msb are ignored
+assign ID_jump_address = i_ID_jump_address;
+assign ID_jump_EX_reg_dest_ID_rt_ID_rs = {i_ID_jump, i_EX_reg_dest, i_ID_rt, i_ID_rs}; // 16 msb are ignored
+
+
 endmodule
