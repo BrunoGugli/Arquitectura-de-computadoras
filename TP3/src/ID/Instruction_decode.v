@@ -207,7 +207,6 @@ module instruction_decode (
             o_inmediato <= 32'h00000000;
             o_opcode <= 6'b000000;
             o_shamt <= 5'b00000;
-            program_finished <= 0;
         end else begin
             if(~i_halt) begin
                 if (opcode == JAL_OPCODE || (opcode == R_TYPE_OPCODE && funct == JALR_FUNCT)) begin

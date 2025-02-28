@@ -14,6 +14,11 @@ module top_pipeline#(
     wire rx_done;
     wire [DATA_BITS-1:0] rx_data;
 
+    // Señales Debug Unit - Pipeline
+    wire write_instruction_flag;
+    wire [31:0] instruction_to_write;
+    wire [31:0] address_to_write_inst;
+
     // Instancia del generador de tasa de baudios
     baud_rate_gen #(
         .clk_freq(100000000),  // Reloj de 100 MHz
@@ -45,7 +50,20 @@ module top_pipeline#(
         .i_clk(i_clk),
         .i_reset(i_reset),
         .i_data_ready(rx_done), // Señal que indica que la recepción ha terminado
-        .i_data(rx_data) // Datos recibidos
+        .i_data(rx_data), // Datos recibidos
+        .o_write_instruction_flag(write_instruction_flag), // Habilitar la escritura de instrucciones
+        .o_address_to_write_inst(address_to_write_inst), // Dirección de memoria donde escribir la instrucción
+        .o_instruction_to_write(instruction_to_write) // Instrucción a escribir
+    );
+
+    // Instancia del pipeline
+    pipeline u_pipeline (
+        .i_clk(i_clk),
+        .i_reset(i_reset),
+        .i_halt(1'b0), // No detener la ejecución
+        .i_write_instruction_flag(write_instruction_flag), // Habilitar la escritura de instrucciones
+        .i_instruction_to_write(instruction_to_write), // Instrucción a escribir
+        .i_address_to_write_inst(address_to_write_inst) // Dirección de memoria donde escribir la instrucción
     );
 
 

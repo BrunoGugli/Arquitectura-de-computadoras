@@ -22,6 +22,7 @@ module debug_unit(
     input wire [31:0] i_register_content,
     input wire [31:0] i_mem_data_content,
     
+    // comunicacion con el pipeline
     output reg o_halt,
     output reg o_reset, // para resetear el pipeline (en realidad es para resetear el pc) cuando se vuelve a IDLE
     output reg o_stall,
@@ -30,23 +31,25 @@ module debug_unit(
     output reg [31:0] o_address_to_write_inst,
     output reg [4:0] o_reg_add_to_read,
     output reg [31:0] o_addr_to_read_mem_data,
+
+    // comunicacion con el UART/UI
     output reg [31:0] o_data_to_fifo
 );
 
 // Wires para los latches
-wire [31:0] IF_ID_latch1,
-wire [31:0] IF_ID_latch2,
-wire [31:0] ID_EX_latch1,
-wire [31:0] ID_EX_latch2,
-wire [31:0] ID_EX_latch3,
-wire [31:0] ID_EX_latch4,
-wire [31:0] EX_MEM_latch1_ID_EX_latch5,
-wire [31:0] EX_MEM_latch2,
-wire [31:0] MEM_WB_latch1_EX_MEM_latch3,
-wire [31:0] MEM_WB_latch2,
-wire [31:0] MEM_WB_latch3,
-wire [31:0] ID_jump_address,
-wire [31:0] ID_jump_EX_reg_dest_ID_rt_ID_rs,
+wire [31:0] IF_ID_latch1;
+wire [31:0] IF_ID_latch2;
+wire [31:0] ID_EX_latch1;
+wire [31:0] ID_EX_latch2;
+wire [31:0] ID_EX_latch3;
+wire [31:0] ID_EX_latch4;
+wire [31:0] EX_MEM_latch1_ID_EX_latch5;
+wire [31:0] EX_MEM_latch2;
+wire [31:0] MEM_WB_latch1_EX_MEM_latch3;
+wire [31:0] MEM_WB_latch2;
+wire [31:0] MEM_WB_latch3;
+wire [31:0] ID_jump_address;
+wire [31:0] ID_jump_EX_reg_dest_ID_rt_ID_rs;
 
 // Estado3
 localparam [3:0] GRAL_IDLE          = 4'b0000;
@@ -100,7 +103,7 @@ always @(posedge i_clk) begin
         o_address_to_write_inst <= 32'h00000000;
         last_instr_received <= 0;
         registers_sent <= 0;
-        mem_data_set <= 0;
+        mem_data_sent <= 0;
         latches_sent <= 0;
     end else begin
         gral_state <= gral_next_state;
