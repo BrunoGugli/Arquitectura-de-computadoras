@@ -76,13 +76,17 @@ localparam [31:0] end_instr = 32'hffffffff;
 localparam [31:0] cancel_step_msg = "clst";
 localparam [31:0] next_step_msg = "nxst";
 
+// fixed message - END data
+localparam [31:0] end_data = "endd";
+
 // Flags de control
 reg prog_ready;
 reg step_mode;
 reg canceled_step;
 reg [1:0] last_intr_count;
 reg last_instr_received;
-reg data_sent;
+reg single_data_sent;
+reg all_data_sent;
 
 reg [4:0] registers_sent; // 32 registers
 reg [4:0] mem_data_sent; // 32 data
@@ -105,8 +109,9 @@ always @(posedge i_clk) begin
         registers_sent <= 0;
         mem_data_set <= 0;
         latches_sent <= 0;
-        data_sent <= 0;
+        single_data_sent <= 0;
         o_write_en_fifo <= 1'b0;
+        all_data_sent <= 0;
     end else begin
         gral_state <= gral_next_state;
 
@@ -253,13 +258,13 @@ always @(*) begin
             end else if(mem_data_sent < ((2**MEM_ADDR_WIDTH)/4)) begin
                 if(i_mem_data_content != 32'h00000000) begin
                     o_write_en_fifo = 1'b1;
-                    if(~data_sent) begin
+                    if(~single_data_sent) begin
                         o_data_to_fifo = i_mem_data_content;
-                        data_sent = 1;
+                        single_data_sent = 1;
                     end else begin
                         o_data_to_fifo = (mem_data_sent * 4);
                         mem_data_sent = mem_data_sent + 1;
-                        data_sent = 0;
+                        single_data_sent = 0;
                     end
                 end else begin
                     mem_data_sent = mem_data_sent + 1;
@@ -298,10 +303,15 @@ always @(*) begin
                         end
                         10: begin
                             o_data_to_fifo = MEM_WB_latch3;
+                            all_data_sent = 1;
                         end
                     endcase
                     latches_sent = latches_sent + 1;
+            end else if(all_data_sent) begin
+                o_data_to_fifo = end_data;
+                all_data_sent = 0;
             end else begin
+                o_write_en_fifo = 0;
                 if(~step_mode) begin // termino la ejecucion en modo continuo
                     o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
                     last_intr_count <= 2'b00;
