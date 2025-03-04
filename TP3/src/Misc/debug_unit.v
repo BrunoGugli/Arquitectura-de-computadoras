@@ -159,7 +159,7 @@ always @(posedge i_clk) begin
                 o_write_en_fifo <= 1'b1;
                 if(registers_sent < 32) begin
                     o_reg_add_to_read = registers_sent;
-                end else if(mem_data_sent < ((2**MEM_ADDR_WIDTH)/4)) begin
+                end else if(mem_data_sent < ((2**MEM_ADDR_WIDTH)/4) && latches_sent >= 11) begin
                     o_write_en_fifo <= 1'b0; // aca en 0, porque todavía no sabemos si lo vamos a mandar o no, depende de si el dato es 0 o no
                     o_addr_to_read_mem_data = (mem_data_sent * 4);
                 end
@@ -255,20 +255,6 @@ always @(*) begin
             if (registers_sent < 32) begin
                 o_data_to_fifo = i_register_content;
                 registers_sent = registers_sent + 1;
-            end else if(mem_data_sent < ((2**MEM_ADDR_WIDTH)/4)) begin
-                if(i_mem_data_content != 32'h00000000) begin
-                    o_write_en_fifo = 1'b1;
-                    if(~single_data_sent) begin
-                        o_data_to_fifo = i_mem_data_content;
-                        single_data_sent = 1;
-                    end else begin
-                        o_data_to_fifo = (mem_data_sent * 4);
-                        mem_data_sent = mem_data_sent + 1;
-                        single_data_sent = 0;
-                    end
-                end else begin
-                    mem_data_sent = mem_data_sent + 1;
-                end
             end else if(latches_sent < 11) begin
                     case(latches_sent)
                         0: begin
@@ -303,24 +289,40 @@ always @(*) begin
                         end
                         10: begin
                             o_data_to_fifo = MEM_WB_latch3;
-                            all_data_sent = 1;
                         end
                     endcase
                     latches_sent = latches_sent + 1;
-            end else if(all_data_sent) begin
-                o_data_to_fifo = end_data;
-                all_data_sent = 0;
-            end else begin
-                o_write_en_fifo = 0;
-                if(~step_mode) begin // termino la ejecucion en modo continuo
-                    o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
-                    last_intr_count <= 2'b00;
-                    gral_next_state = GRAL_IDLE;
-                end else begin
-                    if(i_program_end) begin
-                        o_stall <= 1'b1;
+            end else if(mem_data_sent < ((2**MEM_ADDR_WIDTH)/4)) begin
+                if(i_mem_data_content != 32'h00000000) begin
+                    o_write_en_fifo = 1'b1;
+                    if(~single_data_sent) begin
+                        o_data_to_fifo = i_mem_data_content;
+                        single_data_sent = 1;
+                    end else begin
+                        o_data_to_fifo = (mem_data_sent * 4);
+                        mem_data_sent = mem_data_sent + 1;
+                        single_data_sent = 0;
                     end
-                    gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la ejecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step_msg
+                end else begin
+                    mem_data_sent = mem_data_sent + 1;
+                end
+            end else begin
+                if(~all_data_sent) begin
+                    o_write_en_fifo = 1'b1;
+                    o_data_to_fifo = end_data;
+                    all_data_sent = 1;
+                end else begin
+                    o_write_en_fifo = 0;
+                    if(~step_mode) begin // termino la ejecucion en modo continuo
+                        o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
+                        last_intr_count <= 2'b00;
+                        gral_next_state = GRAL_IDLE;
+                    end else begin
+                        if(i_program_end) begin
+                            o_stall <= 1'b1;
+                        end
+                        gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la ejecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step_msg
+                    end
                 end
             end
         end
