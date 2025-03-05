@@ -4,8 +4,10 @@ module fifo_transmitter
     parameter FIFO_DEPTH = 75 // FIFO depth
 )
 (
-    input wire i_clk, i_reset,
-    input wire i_wr_en, i_rd_en,
+    input wire i_clk, 
+    input wire i_reset,
+    input wire i_wr_en,
+    input wire i_rd_en,
     input wire [DATA_WIDTH-1:0] i_wr_data,
     output reg [DATA_WIDTH-1:0] o_rd_data,
     output reg o_empty

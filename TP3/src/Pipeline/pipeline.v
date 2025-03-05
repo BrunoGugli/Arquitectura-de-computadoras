@@ -11,6 +11,7 @@ module pipeline (
     output wire [138:0] o_ID_EX_latch,
     output wire [75:0] o_EX_MEM_latch,
     output wire [70:0] o_MEM_WB_latch,
+
     output wire o_program_end
 );
 
@@ -138,7 +139,9 @@ module pipeline (
         .o_reg_in_jump(ID_reg_in_jump),
 
         .o_rs_wire(ID_rs),
-        .o_rt_wire(ID_rt)
+        .o_rt_wire(ID_rt),
+
+        .o_program_end(o_program_end)
     );
 
     instruction_exec u_instruction_exec (
@@ -263,5 +266,5 @@ module pipeline (
     assign o_ID_EX_latch = {ID_EX_RA, ID_EX_RB, ID_EX_rs, ID_EX_rt, ID_EX_rd, ID_EX_funct, ID_EX_inmediate, ID_EX_opcode, ID_EX_shamt, ID_EX_ctl_WB_mem_to_reg, ID_EX_ctl_WB_reg_write, ID_EX_ctl_MEM_mem_read, ID_EX_ctl_MEM_mem_write, ID_EX_ctl_MEM_unsigned, ID_EX_ctl_MEM_data_width, ID_EX_ctl_EX_reg_dest, ID_EX_ctl_EX_ALU_op, ID_EX_ctl_EX_alu_src};
     assign o_EX_MEM_latch = {EX_MEM_ALU_result, EX_MEM_data_to_write, EX_MEM_reg_dest, EX_MEM_ctl_MEM_mem_read, EX_MEM_ctl_MEM_mem_write, EX_MEM_ctl_MEM_unsigned, EX_MEM_ctl_MEM_data_width, EX_MEM_ctl_WB_mem_to_reg, EX_MEM_ctl_WB_reg_write};
     assign o_MEM_WB_latch = {MEM_WB_ALU_result, MEM_WB_data_readed_from_memory, MEM_WB_reg_dest, MEM_WB_ctl_WB_mem_to_reg, MEM_WB_ctl_WB_reg_write};
-
+    
 endmodule

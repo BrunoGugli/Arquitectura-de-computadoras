@@ -13,11 +13,6 @@ module debug_unit(
     input wire [138:0] i_ID_EX_latch,
     input wire [75:0] i_EX_MEM_latch,
     input wire [70:0] i_MEM_WB_latch,
-    input wire i_ID_jump,
-    input wire [31:0] i_ID_jump_address,
-    input wire [4:0] i_ID_rs,
-    input wire [4:0] i_ID_rt,
-    input wire [4:0] i_EX_reg_dest,
 
     input wire [31:0] i_register_content,
     input wire [31:0] i_mem_data_content,
