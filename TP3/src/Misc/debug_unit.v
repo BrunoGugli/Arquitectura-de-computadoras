@@ -26,7 +26,7 @@ module debug_unit(
     output reg [31:0] o_instruction_to_write,
     output reg [31:0] o_address_to_write_inst,
 
-    output reg [4:0] o_reg_add_to_read,
+    output reg [4:0] o_reg_addr_to_read,
 
     output reg [31:0] o_addr_to_read_mem_data,
     output wire [1:0] o_data_width_to_read_mem_data,
@@ -159,7 +159,7 @@ always @(posedge i_clk) begin
                 // TODO: implementar toda la logica de mandarle toda la info del pipeline a la pc por uart
                 o_write_en_fifo <= 1'b1;
                 if(registers_sent < 32) begin
-                    o_reg_add_to_read = registers_sent;
+                    o_reg_addr_to_read = registers_sent;
                 end else if(mem_data_sent < ((2**MEM_ADDR_WIDTH)/4) && latches_sent >= 11) begin
                     o_write_en_fifo <= 1'b0; // aca en 0, porque todavía no sabemos si lo vamos a mandar o no, depende de si el dato es 0 o no
                     o_addr_to_read_mem_data = (mem_data_sent * 4);

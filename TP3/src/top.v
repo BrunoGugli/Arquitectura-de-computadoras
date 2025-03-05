@@ -19,8 +19,10 @@ module top_pipeline#(
     wire [31:0] instruction_to_write;
     wire [31:0] address_to_write_inst;
 
-    wire top_jump;
-    wire [31:0] top_jump_address;
+    wire [31:0] top_reg_content;
+    wire [4:0] top_reg_addr_to_read;
+
+    wire [31:0] top_addr_to_read_mem_data;
 
     wire top_program_end;
 
@@ -77,44 +79,57 @@ module top_pipeline#(
         .i_clk(i_clk),
         .i_reset(i_reset),
 
+        // comunicación con el UART
         .i_data_ready(rx_done), // Señal que indica que la recepción ha terminado
         .i_data(rx_data), // Datos recibidos
 
+        // comunicación con el pipeline
         .i_program_end(top_program_end), // Señal que indica que el programa ha terminado 
         .i_IF_ID_latch(top_IF_ID_latch),
         .i_ID_EX_latch(top_ID_EX_latch),
         .i_EX_MEM_latch(top_EX_MEM_latch),
         .i_MEM_WB_latch(top_MEM_WB_latch),
 
-        .i_register_content(),
+        .i_register_content(top_reg_content),
         .i_mem_data_content(),
 
         .o_halt(),
         .o_reset(),
         .o_stall(),
+
         .o_write_instruction_flag(write_instruction_flag), // Habilitar la escritura de instrucciones
         .o_instruction_to_write(instruction_to_write), // Instrucción a escribir
         .o_address_to_write_inst(address_to_write_inst), // Dirección de memoria donde escribir la instrucción
-        .o_reg_add_to_read(),
-        .o_addr_to_read_mem_data(),  
-         
-        .o_data_to_fifo()
+        
+        .o_reg_addr_to_read(),
+        
+        .o_addr_to_read_mem_data(top_addr_to_read_mem_data), 
+        .o_data_width_to_read_mem_data(),
+        .o_data_to_fifo(),
+        .o_write_en_fifo()
     );
 
     // Instancia del pipeline
     pipeline u_pipeline (
+        
         .i_clk(i_clk),
         .i_reset(i_reset),
         .i_halt(1'b0), // No detener la ejecución
         .i_write_instruction_flag(write_instruction_flag), // Habilitar la escritura de instrucciones
         .i_instruction_to_write(instruction_to_write), // Instrucción a escribir
         .i_address_to_write_inst(address_to_write_inst), // Dirección de memoria donde escribir la instrucción
+
         .o_IF_ID_latch(top_IF_ID_latch),
         .o_ID_EX_latch(top_ID_EX_latch),
         .o_EX_MEM_latch(top_EX_MEM_latch),
         .o_MEM_WB_latch(top_MEM_WB_latch),
-        .o_jump(top_jump),
-        .o_jump_address(top_jump_address),
+        
+        .i_reg_read(top_reg_addr_to_read), // Dirección de registro a leer
+        .o_reg_content(top_reg_content),
+
+        .i_address_to_read_from_debug(),
+        .o_mem_addr_content_to_debug(),
+        
         .o_program_end(top_program_end)
     );
 

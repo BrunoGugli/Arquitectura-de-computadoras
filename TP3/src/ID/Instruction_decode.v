@@ -13,7 +13,6 @@ module instruction_decode (
 
     //cosas del detect hazard
     input wire i_stall,
-
     input wire i_halt,
 
     // cosas que van hacia la etapa de EX
@@ -27,18 +26,17 @@ module instruction_decode (
     output reg [ 5:0] o_opcode, // codigo de operacion para el tipo de instruccion
     output reg [ 4:0] o_shamt, // indica el desplazamiento de bits
 
-    // WB control signals
+    // señales de control para la etapa de WB
     output reg o_ctl_WB_mem_to_reg_ID, // 0 -> MEM to reg, 1 -> ALU to reg
     output reg o_ctl_WB_reg_write_ID,
 
-    // MEM control signals
+    // señales de control para la etapa de MEM
     output reg o_ctl_MEM_mem_read_ID,
     output reg o_ctl_MEM_mem_write_ID,
     output reg o_ctl_MEM_unsigned_ID,
     output reg [1:0] o_ctl_MEM_data_width_ID , // 00 -> byte, 01 -> halfword, 11 -> word
-    
 
-    // EX control signals
+    // señales de control para la etapa de EX
     output reg o_ctl_EX_reg_dest_ID,
     output reg [1:0] o_ctl_EX_ALU_op_ID,
     output reg o_ctl_EX_ALU_src_ID,
@@ -48,6 +46,7 @@ module instruction_decode (
     output reg [31:0] o_jump_address,
     output reg [1:0] o_reg_in_jump, // 00 -> not jump, 01 -> jump with rs and rt, 10 -> jump with rs only
 
+    // hazard unit
     output wire [4:0] o_rs_wire,
     output wire [4:0] o_rt_wire, // Estos dos para la hazard unit
 
@@ -207,6 +206,7 @@ module instruction_decode (
             o_inmediato <= 32'h00000000;
             o_opcode <= 6'b000000;
             o_shamt <= 5'b00000;
+            program_finished <= 0;
         end else begin
             if(~i_halt) begin
                 if (opcode == JAL_OPCODE || (opcode == R_TYPE_OPCODE && funct == JALR_FUNCT)) begin
