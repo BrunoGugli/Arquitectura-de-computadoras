@@ -21,15 +21,19 @@ module debug_unit(
     output reg o_halt,
     output reg o_reset, // para resetear el pipeline (en realidad es para resetear el pc) cuando se vuelve a IDLE
     output reg o_stall,
+
     output reg o_write_instruction_flag,
     output reg [31:0] o_instruction_to_write,
     output reg [31:0] o_address_to_write_inst,
-    output reg [4:0] o_reg_add_to_read,
-    output reg [31:0] o_addr_to_read_mem_data,
 
-    // comunicacion con el UART/UI
-    output reg [31:0] o_data_to_fifo
-);
+    output reg [4:0] o_reg_add_to_read,
+
+    output reg [31:0] o_addr_to_read_mem_data,
+    output wire [1:0] o_data_width_to_read_mem_data,
+
+    output reg [31:0] o_data_to_fifo,
+    output reg o_write_en_fifo
+)
 
 // Wires para los latches
 wire [31:0] IF_ID_latch1;
@@ -43,8 +47,9 @@ wire [31:0] EX_MEM_latch2;
 wire [31:0] MEM_WB_latch1_EX_MEM_latch3;
 wire [31:0] MEM_WB_latch2;
 wire [31:0] MEM_WB_latch3;
-wire [31:0] ID_jump_address;
-wire [31:0] ID_jump_EX_reg_dest_ID_rt_ID_rs;
+
+// Ancho de la direccion de memoria de datos
+localparam MEM_ADDR_WIDTH = 13;
 
 // Estado3
 localparam [3:0] GRAL_IDLE          = 4'b0000;
@@ -72,12 +77,17 @@ localparam [31:0] end_instr = 32'hffffffff;
 localparam [31:0] cancel_step_msg = "clst";
 localparam [31:0] next_step_msg = "nxst";
 
+// fixed message - END data
+localparam [31:0] end_data = "endd";
+
 // Flags de control
 reg prog_ready;
 reg step_mode;
 reg canceled_step;
 reg [1:0] last_intr_count;
 reg last_instr_received;
+reg single_data_sent;
+reg all_data_sent;
 
 reg [4:0] registers_sent; // 32 registers
 reg [4:0] mem_data_sent; // 32 data
@@ -100,6 +110,9 @@ always @(posedge i_clk) begin
         registers_sent <= 0;
         mem_data_sent <= 0;
         latches_sent <= 0;
+        single_data_sent <= 0;
+        o_write_en_fifo <= 1'b0;
+        all_data_sent <= 0;
     end else begin
         gral_state <= gral_next_state;
 
@@ -144,10 +157,12 @@ always @(posedge i_clk) begin
 
             SEND_INFO_TO_PC: begin
                 // TODO: implementar toda la logica de mandarle toda la info del pipeline a la pc por uart
+                o_write_en_fifo <= 1'b1;
                 if(registers_sent < 32) begin
                     o_reg_add_to_read = registers_sent;
-                end else if(mem_data_sent < 32) begin
-                    o_addr_to_read_mem_data = mem_data_sent;
+                end else if(mem_data_sent < ((2**MEM_ADDR_WIDTH)/4) && latches_sent >= 11) begin
+                    o_write_en_fifo <= 1'b0; // aca en 0, porque todavía no sabemos si lo vamos a mandar o no, depende de si el dato es 0 o no
+                    o_addr_to_read_mem_data = (mem_data_sent * 4);
                 end
             end
 
@@ -241,10 +256,7 @@ always @(*) begin
             if (registers_sent < 32) begin
                 o_data_to_fifo = i_register_content;
                 registers_sent = registers_sent + 1;
-            end else if(mem_data_sent < 32) begin
-                o_data_to_fifo = i_mem_data_content;
-                mem_data_sent = mem_data_sent + 1;
-            end else if(latches_sent < 13) begin
+            end else if(latches_sent < 11) begin
                     case(latches_sent)
                         0: begin
                             o_data_to_fifo = IF_ID_latch1;
@@ -279,24 +291,39 @@ always @(*) begin
                         10: begin
                             o_data_to_fifo = MEM_WB_latch3;
                         end
-                        11: begin
-                            o_data_to_fifo = ID_jump_address;
-                        end
-                        12: begin
-                            o_data_to_fifo = ID_jump_EX_reg_dest_ID_rt_ID_rs;
-                        end
                     endcase
                     latches_sent = latches_sent + 1;
-            end else begin
-                if(~step_mode) begin // termino la ejecucion en modo continuo
-                    o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
-                    last_intr_count <= 2'b00;
-                    gral_next_state = GRAL_IDLE;
-                end else begin
-                    if(i_program_end) begin
-                        o_stall <= 1'b1;
+            end else if(mem_data_sent < ((2**MEM_ADDR_WIDTH)/4)) begin
+                if(i_mem_data_content != 32'h00000000) begin
+                    o_write_en_fifo = 1'b1;
+                    if(~single_data_sent) begin
+                        o_data_to_fifo = i_mem_data_content;
+                        single_data_sent = 1;
+                    end else begin
+                        o_data_to_fifo = (mem_data_sent * 4);
+                        mem_data_sent = mem_data_sent + 1;
+                        single_data_sent = 0;
                     end
-                    gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la ejecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step_msg
+                end else begin
+                    mem_data_sent = mem_data_sent + 1;
+                end
+            end else begin
+                if(~all_data_sent) begin
+                    o_write_en_fifo = 1'b1;
+                    o_data_to_fifo = end_data;
+                    all_data_sent = 1;
+                end else begin
+                    o_write_en_fifo = 0;
+                    if(~step_mode) begin // termino la ejecucion en modo continuo
+                        o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
+                        last_intr_count <= 2'b00;
+                        gral_next_state = GRAL_IDLE;
+                    end else begin
+                        if(i_program_end) begin
+                            o_stall <= 1'b1;
+                        end
+                        gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la ejecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step_msg
+                    end
                 end
             end
         end
@@ -314,8 +341,8 @@ assign EX_MEM_latch2 = i_EX_MEM_latch[52:21];
 assign MEM_WB_latch1_EX_MEM_latch3 = {i_MEM_WB_latch[8:0], i_EX_MEM_latch[75:53]};
 assign MEM_WB_latch2 = i_MEM_WB_latch[40:9];
 assign MEM_WB_latch3 = i_MEM_WB_latch[70:41]; // two msb are ignored
-assign ID_jump_address = i_ID_jump_address;
-assign ID_jump_EX_reg_dest_ID_rt_ID_rs = {i_ID_jump, i_EX_reg_dest, i_ID_rt, i_ID_rs}; // 16 msb are ignored
+
+assign o_data_width_to_read_mem_data = 2'b11; // siempre se lee una palabra de 32 bits
 
 
 endmodule
