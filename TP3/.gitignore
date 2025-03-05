@@ -1,2 +1,5 @@
-UI/src/__pycache__/
-UI/src/config.json
+# Ignorar el directorio __pycache__ en cualquier lugar del proyecto
+__pycache__/
+
+# Ignorar el archivo config.json en el directorio UI/src
+UI/config.json
