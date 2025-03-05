@@ -1,9 +1,17 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, messagebox
 from typing import Final
 import os
 import json
 from src.comunicator import Comunicator
+from src.compiler import Compiler
+from enum import Enum
+from serial import SerialException
+
+
+class ExecutionMode(Enum):
+    CONTINUOUS = 1
+    STEP = 2
 
 
 class Interface:
@@ -13,10 +21,22 @@ class Interface:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("MIPS Simulator")
+        #self.root.resizable(False, False)
+
         self.if_id_data: Final[list[str]] = ["instruction", "PC"]
         self.id_ex_data: Final[list[str]] = ["RA", "RB", "rs", "rt", "rd", "funct", "inmediato", "opcode", "shamt", "mem_to_reg", "mem_read", "mem_write", "reg_write", "unsigned", "data_width", "reg_dest", "alu_op", "alu_src"]
         self.ex_mem_data: Final[list[str]] = ["ALU_result", "data_to_write", "reg_dest", "mem_read", "mem_write", "unsigned", "data_width", "mem_to_reg", "reg_write"]
         self.mem_wb_data: Final[list[str]] = ["ALU_result", "data_from_mem", "reg_dest", "mem_to_reg", "reg_write"]
+
+        self.instructions_from_file: list[str] = []
+        self.intructions_to_send: list[int] = []
+        self.data_received_list: list[int] = []
+
+        self.compiler: Compiler = Compiler()
+
+        self.executing_step: bool = False
+        self.program_loaded: bool = False
+        self.current_execution_mode: ExecutionMode = ExecutionMode.CONTINUOUS
         self.load_config()
         self.create_widgets()
 
@@ -134,14 +154,21 @@ class Interface:
         for data in self.mem_wb_data:
             self.mem_wb_text.insert(tk.END, f"{data}:\n")
 
-
     def load_file(self):
         file_path = filedialog.askopenfilename()
         if file_path:
             self.file_entry.delete(0, tk.END)
             self.file_entry.insert(0, file_path)
-            # Aquí se cargaría el archivo en memoria
-
+            try:
+                with open(file_path, "r") as file:
+                    self.instructions_from_file = file.readlines()
+                    file.close()
+                    print(f"File loaded successfully: {len(self.instructions_from_file)} instructions.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Error loading file: {e}")
+        else:
+            messagebox.showerror("Error", "No file selected or invalid file path.")
+                
     def set_baudrate_and_port(self):
         self.baudrate = int(self.baud_entry.get())
         self.port = self.port_entry.get()
@@ -152,21 +179,73 @@ class Interface:
                 self.save_config()
                 print(f"Baudrate set to: {self.baudrate}, Port set to: {self.port}")
             else:
-                print("Failed to open serial port.")
+                messagebox.showerror("Error", "Error opening serial port. Please check the port and baudrate values.")
+        except SerialException as e:
+            messagebox.showerror("Error", f"Error opening serial port: {e}")
         except ValueError:
-            print("Invalid baudrate value. Please enter a valid integer.")
+            messagebox.showerror("Error", "Invalid baudrate value. Please enter a valid integer.")
 
     def compile_program(self):
         # Aquí se llamará al método del compilador
-        pass
+        if not self.instructions_from_file:
+            messagebox.showerror("Error", "No instructions to compile. Please load a file first.")
+            return
+        try:
+            self.intructions_to_send = self.compiler.compile(self.instructions_from_file)
+            print(f"Program compiled successfully: {len(self.intructions_to_send)} instructions.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error compiling program: {e}")
 
     def load_program(self):
-        # Aquí se llamará al método del comunicador
-        pass
+        if not self.intructions_to_send:
+            messagebox.showerror("Error", "No instructions to load. Please compile a program first.")
+            return
+        try:
+            self.comunicator.send_data(b'\0lom')
+            for instruction in self.intructions_to_send:
+                self.comunicator.send_data(instruction.to_bytes(4, byteorder='big'))
+            self.comunicator.send_data((0xffffffff).to_bytes(4, byteorder='big')) # End instruction
+            self.program_loaded = True
+            print("Program loaded successfully!")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error loading program: {e}")
 
     def execute_program(self):
         # Aquí se mandará la señal de ejecución al comunicador
-        pass
+        if not self.program_loaded:
+            messagebox.showerror("Error", "No program loaded. Please compile and load a program first.")
+            return
+        if self.executing_step:
+            messagebox.showerror("Error", "Already executing program in step mode.\nPlease cancel the current debug session to execute the program.")
+            return
+        self._set_exec_mode()
+        if self.current_execution_mode == ExecutionMode.CONTINUOUS:
+            self.comunicator.send_data(b'\0com')
+            self._receive_data()
+        elif self.current_execution_mode == ExecutionMode.STEP:
+            self.comunicator.send_data(b'\0stm')
+
+    def _receive_data(self):
+        while True:
+            data = self.comunicator.receive_data()
+            if data == b'endd':
+                return
+            self.data_received_list.append(self._transform_received_data_to_int(data))
+
+    def _transform_received_data_to_int(self, data: bytes) -> int:
+        return int.from_bytes(data, byteorder='big')
+
+    def _set_exec_mode(self):
+        mode = self.execution_mode.get()
+        if mode == "Continuous":
+            self.current_execution_mode = ExecutionMode.CONTINUOUS
+        elif mode == "Step":
+            self.current_execution_mode = ExecutionMode.STEP
+
+    def _update_memory_data(self):
+        self.memory_text.delete(1.0, tk.END)
+        for data in self.data_received_list: ## cambiar esto xd
+            self.memory_text.insert(tk.END, f"{data}\n")
 
     def next_step(self):
         # Aquí se enviará la señal de siguiente paso
