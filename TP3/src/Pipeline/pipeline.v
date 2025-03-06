@@ -3,6 +3,7 @@ module pipeline (
     input wire i_clk,
     input wire i_reset,
     input wire i_halt,
+    input wire i_stall,
     input wire i_write_instruction_flag,
     input wire [31:0] i_instruction_to_write,
     input wire [31:0] i_address_to_write_inst,
@@ -15,7 +16,7 @@ module pipeline (
     input wire [4:0] i_reg_read,
     output wire [31:0] o_reg_content,
 
-    input wire [31:0] i_address_to_read_from_debug,
+    input wire [31:0] i_addr_to_read_mem_data_from_debug,
     output wire [31:0] o_mem_addr_content_to_debug,
 
     output wire o_program_end
@@ -88,6 +89,9 @@ module pipeline (
     wire [4:0]  ID_rt;
     wire [4:0]  EX_reg_dest;
 
+    wire pipeline_stall;
+    wire [1:0] data_width_for_memory_stage;
+
 
 
 //------------------------------------------------- INSTANCIAS ----------------------------------------------------------
@@ -96,7 +100,7 @@ module pipeline (
 
         .i_clk(i_clk),
         .i_reset(i_reset),
-        .i_stall(hzrd_stall),
+        .i_stall(pipeline_stall),
         .i_halt(i_halt),
         .i_write_instruction_flag(i_write_instruction_flag),
         .i_jump(ID_jump),
@@ -121,7 +125,7 @@ module pipeline (
         .i_write_data_wb(WB_data_to_write),
 
         // cosas del detect hazard
-        .i_stall(hzrd_stall),
+        .i_stall(pipeline_stall),
         .i_halt(i_halt),
 
         // cosas que van hacia la etapá de EX
@@ -229,7 +233,7 @@ module pipeline (
         .i_ctl_MEM_mem_read_MEM(EX_MEM_ctl_MEM_mem_read),
         .i_ctl_MEM_mem_write_MEM(EX_MEM_ctl_MEM_mem_write),
         .i_ctl_MEM_unsigned_MEM(EX_MEM_ctl_MEM_unsigned),
-        .i_ctl_MEM_data_width_MEM(EX_MEM_ctl_MEM_data_width),
+        .i_ctl_MEM_data_width_MEM(data_width_for_memory_stage),
 
         .i_ctl_WB_mem_to_reg_MEM(EX_MEM_ctl_WB_mem_to_reg),
         .i_ctl_WB_reg_write_MEM(EX_MEM_ctl_WB_reg_write),
@@ -249,8 +253,8 @@ module pipeline (
         .o_reg_dest(MEM_WB_reg_dest),
 
         // Debug unit
-        .i_address_to_read_from_debug(),
-        .o_mem_addr_content_to_debug(),
+        .i_address_to_read_from_debug(i_addr_to_read_mem_data_from_debug),
+        .o_mem_addr_content_to_debug(o_mem_addr_content_to_debug),
            
     );
 
@@ -303,5 +307,7 @@ module pipeline (
     assign o_ID_EX_latch = {ID_EX_RA, ID_EX_RB, ID_EX_rs, ID_EX_rt, ID_EX_rd, ID_EX_funct, ID_EX_inmediate, ID_EX_opcode, ID_EX_shamt, ID_EX_ctl_WB_mem_to_reg, ID_EX_ctl_WB_reg_write, ID_EX_ctl_MEM_mem_read, ID_EX_ctl_MEM_mem_write, ID_EX_ctl_MEM_unsigned, ID_EX_ctl_MEM_data_width, ID_EX_ctl_EX_reg_dest, ID_EX_ctl_EX_ALU_op, ID_EX_ctl_EX_alu_src};
     assign o_EX_MEM_latch = {EX_MEM_ALU_result, EX_MEM_data_to_write, EX_MEM_reg_dest, EX_MEM_ctl_MEM_mem_read, EX_MEM_ctl_MEM_mem_write, EX_MEM_ctl_MEM_unsigned, EX_MEM_ctl_MEM_data_width, EX_MEM_ctl_WB_mem_to_reg, EX_MEM_ctl_WB_reg_write};
     assign o_MEM_WB_latch = {MEM_WB_ALU_result, MEM_WB_data_readed_from_memory, MEM_WB_reg_dest, MEM_WB_ctl_WB_mem_to_reg, MEM_WB_ctl_WB_reg_write};
+    assign pipeline_stall = hzrd_stall | i_stall;
+    assign data_width_for_memory_stage = i_halt ? 2'b11 : EX_MEM_ctl_MEM_data_width;
     
 endmodule

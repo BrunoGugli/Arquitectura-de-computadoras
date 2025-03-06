@@ -29,7 +29,6 @@ module debug_unit(
     output reg [4:0] o_reg_addr_to_read,
 
     output reg [31:0] o_addr_to_read_mem_data,
-    output wire [1:0] o_data_width_to_read_mem_data,
 
     output reg [31:0] o_data_to_fifo,
     output reg o_write_en_fifo
@@ -113,6 +112,7 @@ always @(posedge i_clk) begin
         single_data_sent <= 0;
         o_write_en_fifo <= 1'b0;
         all_data_sent <= 0;
+        o_reset <= 1'b0;
     end else begin
         gral_state <= gral_next_state;
 
@@ -342,7 +342,7 @@ assign MEM_WB_latch1_EX_MEM_latch3 = {i_MEM_WB_latch[8:0], i_EX_MEM_latch[75:53]
 assign MEM_WB_latch2 = i_MEM_WB_latch[40:9];
 assign MEM_WB_latch3 = i_MEM_WB_latch[70:41]; // two msb are ignored
 
-assign o_data_width_to_read_mem_data = 2'b11; // siempre se lee una palabra de 32 bits
+
 
 
 endmodule
