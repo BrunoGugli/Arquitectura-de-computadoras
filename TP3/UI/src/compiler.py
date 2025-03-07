@@ -1,10 +1,16 @@
 import re
 
 class Compiler():
-    
+
     def __init__(self):
         self.type_intructions_dict = self._create_type_instructions_dict()
         self.opcode_instructions_dict = self._create_opcode_instructions_dict()
+        self.instruction_builder_dict = {
+            "tipo_r_sa": self._build_r_sa_instruction,
+            "tipo_r": self._build_r_instruction,
+            "tipo_i": self._build_i_instruction,
+            "tipo_j": self._build_j_instruction
+        }
 
     def compile(self, instructions: list[str]) -> list[int]:
         compiled_instructions: list[int] = []
@@ -12,27 +18,79 @@ class Compiler():
             compiled_instruction = self._translate(instruction)
             compiled_instructions.append(compiled_instruction)
         return compiled_instructions
-    
+
     def _translate(self, instruction: str) -> int:
         inst_name = self._get_instruction_name(instruction)
         inst_type = self._get_instruction_type(inst_name)
-        if inst_type == "tipo_r_sa":
-            self._build_r_sa_instruction(instruction)
+        inst = self.instruction_builder_dict[inst_type](instruction)
+        if not inst:
+            raise Exception(f"Instruction {instruction} has an invalid syntax")
+        return inst
 
     def _build_r_sa_instruction(self, instruction: str) -> int:
-        pass
+        type_r_regex = "([\w]+)\s+\$(\d+),\s*\$(\d+),\s*(-?\d*)"
+        match = re.match(type_r_regex, instruction)
+        if match:
+            func = self.opcode_instructions_dict[match.group(1)]
+            rd = int(match.group(2))
+            rt = int(match.group(3))
+            shamt = int(match.group(4))
+            self._check_register_boundary(instruction, rd, 0, 31, True, True)
+            self._check_register_boundary(instruction, rt, 0, 31, True, True)
+            self._check_register_boundary(instruction, shamt, 0, 31, True, True)
+            return (0b000000 << 26) | (0b00000 << 21) | (self._mask(rt, 0b11111) << 16) | (self._mask(rd, 0b11111) << 11) | (self._mask(shamt, 0b11111) << 6) | self._mask(func, 0b111111)
+        
+        return None
 
     def _build_r_instruction(self, instruction: str) -> int:
-        pass
+        type_r_regex = "([\w]+)\s+\$(\d+),\s*\$(\d+),\s*\$(\d+)"
+        match = re.match(type_r_regex, instruction)
+        if match:
+            func = self.opcode_instructions_dict[match.group(1)]
+            rs = int(match.group(3))
+            rt = int(match.group(4))
+            rd = int(match.group(2))
+            self._check_register_boundary(instruction, rs, 0, 31, True, True)
+            self._check_register_boundary(instruction, rt, 0, 31, True, True)
+            self._check_register_boundary(instruction, rd, 0, 31, True, True)
+            return (0b000000 << 26) | (self._mask(rs, 0b11111) << 21) | (self._mask(rt, 0b11111) << 16) | (self._mask(rd, 0b11111) << 11) | 0b00000 | self._mask(func, 0b111111)
+
+        return None
 
     def _build_i_instruction(self, instruction: str) -> int:
-        pass
+        type_i_regex = "([\w]+)\s+\$(\d+),\s*\$(\d+),\s*\(?(-?\d+)\)?"
+        match = re.match(type_i_regex, instruction)
+        if match:
+            opcode = self.opcode_instructions_dict[match.group(1)]
+            rs = int(match.group(3))
+            rt = int(match.group(2))
+            imm = int(match.group(4))
+            self._check_register_boundary(instruction, rs, 0, 31, True, True)
+            self._check_register_boundary(instruction, rt, 0, 31, True, True)
+            return (self._mask(opcode, 0b111111) << 26) | (self._mask(rs, 0b11111) << 21) | (self._mask(rt, 0b11111) << 16) | self._mask(imm, 0xFFFF)
+        
+        return None
 
     def _build_j_instruction(self, instruction: str) -> int:
-        pass
-    
+        type_j_regex = "([\w]+)\s+(\d+)"
+        match = re.match(type_j_regex, instruction)
+        if match:
+            opcode = self.opcode_instructions_dict[match.group(1)]
+            instr_index = int(match.group(2))
+            return (self._mask(opcode, 0b111111) << 26) | self._mask(instr_index, 0x3FFFFFF)
+        
+        return None
+
     def _get_instruction_name(self, instruction: str) -> str:
         return instruction.split(" ")[0]
+
+    def _check_register_boundary(self, instruction: str, register: int, min: int, max: int, include_min: bool, include_max: bool) -> None:
+        if include_min and register < min:
+            raise Exception(f"Register number must be greater or equal to {min}")
+        if include_max and register > max:
+            raise Exception(f"Register number must be less or equal to {max}")
+        if register < min or register > max:
+            raise Exception(f"Registers in instruction {instruction} must be between {min} and {max}")
 
     def _get_instruction_type(self, instruction_name: str) -> str:
         for type_name, instructions in self.type_intructions_dict.items():
@@ -40,6 +98,8 @@ class Compiler():
                 return type_name
         return None
 
+    def _mask(self, value: int, mask: int) -> int:
+        return value & mask
 
     def _create_type_instructions_dict(self) -> dict[str, list[str]]:
         return {
@@ -50,7 +110,7 @@ class Compiler():
             "tipo_i": ["addi", "addiu", "andi", "beq", "bne", "lb", "lbu", "lh", "lhu", "lui", "lw", "lwu", "ori", "sb", "sh", "sw", "xori", "slti", "sltiu"],
             "tipo_j": ["j", "jal"]
         }
-    
+
     def _create_opcode_instructions_dict(self) -> dict[str, int]:
         return {
             "sll": 0b000000,
@@ -93,4 +153,3 @@ class Compiler():
             "j": 0b000010,
             "jal": 0b000011
         }
-
