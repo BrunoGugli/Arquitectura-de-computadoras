@@ -49,7 +49,12 @@ module instruction_decode (
     output reg [1:0] o_reg_in_jump, // 00 -> not jump, 01 -> jump with rs and rt, 10 -> jump with rs only
 
     output wire [4:0] o_rs_wire,
-    output wire [4:0] o_rt_wire // Estos dos para la hazard unit
+    output wire [4:0] o_rt_wire, // Estos dos para la hazard unit
+
+    // Debug unit
+    input wire [4:0] i_reg_read,
+    output wire [31:0] o_reg_content,
+    output wire o_program_end
 );
 
     wire [5:0] opcode;
@@ -59,9 +64,10 @@ module instruction_decode (
     wire [31:0] RB;
     wire [31:0] inmediato;
     wire [5:0] funct;
+    wire [4:0] rs_to_bank;
 
     localparam NOP = 32'h00000000;
-    localparam HALT = 32'hffffffff;
+    localparam END_INSTR = 32'hffffffff;
     localparam R_TYPE_OPCODE = 6'b000000;
     localparam JAL_OPCODE = 6'b000011;
     localparam JALR_FUNCT = 6'b001001;
@@ -77,7 +83,7 @@ module instruction_decode (
         .i_clk(i_clk),
         .i_reset(i_reset),
         .i_write_enable(i_ctl_wb_reg_write_wb),
-        .i_read_reg1(rs),
+        .i_read_reg1(rs_to_bank),
         .i_read_reg2(rt),
         .i_write_reg(i_write_addr_wb),
         .i_data_write(i_write_data_wb),
@@ -201,6 +207,7 @@ module instruction_decode (
             o_inmediato <= 32'h00000000;
             o_opcode <= 6'b000000;
             o_shamt <= 5'b00000;
+            program_finished <= 0;
         end else begin
             if(~i_halt) begin
                 if (opcode == JAL_OPCODE || (opcode == R_TYPE_OPCODE && funct == JALR_FUNCT)) begin
@@ -280,5 +287,9 @@ module instruction_decode (
     assign inmediato = {{16{i_instruction[15]}}, i_instruction[15:0]}; // Inmediato con extension de signo
     assign o_rs_wire = rs; // para la hazard unit
     assign o_rt_wire = rt; // para la hazard unit
+    assign o_program_end = i_instruction == END_INSTR;
+    // debug
+    assign rs_to_bank = i_halt ? i_reg_read : rs;
+    assign o_reg_content = RA;
 
 endmodule
