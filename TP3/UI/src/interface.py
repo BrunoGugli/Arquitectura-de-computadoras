@@ -20,7 +20,7 @@ class Interface:
 
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("MIPS Simulator")
+        self.root.title("MIPS Debugger")
         #self.root.resizable(False, False)
 
         self.instructions_from_file: list[str] = []
@@ -60,20 +60,27 @@ class Interface:
             json.dump(config, file)
 
     def create_widgets(self):
+        
+        # Configurar las columnas y filas para que se expandan
+        for i in range(10):  # Ajusta el rango según el número de columnas que tengas
+            self.root.grid_columnconfigure(i, weight=1)
+        for i in range(20):  # Ajusta el rango según el número de filas que tengas
+            self.root.grid_rowconfigure(i, weight=1)
+        
         # Labels
-        tk.Label(self.root, text="Port:", padx=10).grid(row=0, column=0, sticky="w")
-        tk.Label(self.root, text="Baud Rate:", padx=10).grid(row=2, column=0, sticky="w")
-        tk.Label(self.root, text="File for Instructions:", padx=10).grid(row=4, column=0, sticky="w")
-        tk.Label(self.root, text="Execution Mode:", padx=10).grid(row=6, column=0, sticky="w")
+        tk.Label(self.root, text="Port:", padx=10).grid(row=0, column=0, sticky="nsew")
+        tk.Label(self.root, text="Baud Rate:", padx=10).grid(row=2, column=0, sticky="nsew")
+        tk.Label(self.root, text="File for Instructions:", padx=10).grid(row=4, column=0, sticky="nsew")
+        tk.Label(self.root, text="Execution Mode:", padx=10).grid(row=6, column=0, sticky="nsew")
         
         # Entry fields
         self.port_entry = tk.Entry(self.root)
         self.baud_entry = tk.Entry(self.root)
         self.file_entry = tk.Entry(self.root)
         
-        self.port_entry.grid(row=1, column=0, padx=10)
-        self.baud_entry.grid(row=3, column=0, padx=10)
-        self.file_entry.grid(row=5, column=0, padx=10)
+        self.port_entry.grid(row=1, column=0, padx=10, sticky="nsew")
+        self.baud_entry.grid(row=3, column=0, padx=10, sticky="nsew")
+        self.file_entry.grid(row=5, column=0, padx=10, sticky="nsew")
 
         # Set default values from config
         self.port_entry.insert(0, self.port)
@@ -82,7 +89,7 @@ class Interface:
         # Dropdown menu
         self.execution_mode = tk.StringVar()
         self.execution_dropdown = ttk.Combobox(self.root, textvariable=self.execution_mode, values=["Continuous", "Step"], width=18)
-        self.execution_dropdown.grid(row=7, column=0)
+        self.execution_dropdown.grid(row=7, column=0, sticky="nsew")
         
         # Buttons
         self.set_button = tk.Button(self.root, text="Set", command=self.set_baudrate_and_port)
@@ -94,32 +101,32 @@ class Interface:
         self.cancel_debug_btn = tk.Button(self.root, text="Cancel Debug", command=self.cancel_debug)
         
         # Button grid placement
-        self.set_button.grid        (row=2, column=1, padx=5, pady=5)
-        self.load_file_btn.grid     (row=5, column=1, padx=5, pady=2)
-        self.compile_btn.grid       (row=5, column=2, padx=5, pady=2)
-        self.load_program_btn.grid  (row=5, column=3, padx=5, pady=2)
-        self.execute_btn.grid       (row=7, column=1, ipadx=5, pady=2)
-        self.next_step_btn.grid     (row=7, column=2, ipadx=25, pady=2)
-        self.cancel_debug_btn.grid  (row=7, column=3, padx=5, pady=2)
+        self.set_button.grid        (row=2, column=1, padx=5, pady=5, sticky="nsew")
+        self.load_file_btn.grid     (row=5, column=1, padx=5, pady=2, sticky="nsew")
+        self.compile_btn.grid       (row=5, column=2, padx=5, pady=2, sticky="nsew")
+        self.load_program_btn.grid  (row=5, column=3, padx=5, pady=2, sticky="nsew")
+        self.execute_btn.grid       (row=7, column=1, ipadx=5, pady=2, sticky="nsew")
+        self.next_step_btn.grid     (row=7, column=2, ipadx=25, pady=2, sticky="nsew")
+        self.cancel_debug_btn.grid  (row=7, column=3, padx=5, pady=2, sticky="nsew")
 
         # Intruction count label
         self.instruction_count_label = tk.Label(self.root, text="Number of instructions entered into the pipeline: 0/0")
-        self.instruction_count_label.grid(row=8, column=0, columnspan=4, sticky="w", padx=10, pady=5)
+        self.instruction_count_label.grid(row=8, column=0, columnspan=4, sticky="nsew", padx=10, pady=5)
 
 
         # Memory Data Display
         self.memory_frame = tk.LabelFrame(self.root, text="Memory Data")
-        self.memory_frame.grid(row=0, column=4, columnspan=3, rowspan=16, ipadx=10, ipady=5, padx=15, pady=5)
+        self.memory_frame.grid(row=0, column=4, columnspan=3, rowspan=16, ipadx=10, ipady=5, padx=15, pady=5, sticky="nsew")
         self.memory_text = tk.Text(self.memory_frame, width=25)
-        self.memory_text.pack()
+        self.memory_text.pack(expand=True, fill='both')
         
         # Table for Registers
         self.registers_frame = tk.LabelFrame(self.root, text="Registers")
-        self.registers_frame.grid(row=0, column=7, columnspan=3, rowspan=16, ipadx=10, ipady=5, padx=15, pady=15)
+        self.registers_frame.grid(row=0, column=7, columnspan=3, rowspan=16, ipadx=10, ipady=5, padx=15, pady=15, sticky="nsew")
         self.registers_table = ttk.Treeview(self.registers_frame, columns=("Register", "Value"), show="headings", height=16)
         self.registers_table.heading("Register", text="Register")
         self.registers_table.heading("Value", text="Value")
-        self.registers_table.pack()
+        self.registers_table.pack(expand=True, fill='both')
         
         for i in range(32):
             self.registers_table.insert("", "end", values=(f"R{i}", "0"))
@@ -128,25 +135,36 @@ class Interface:
         self.latches_frame = tk.LabelFrame(self.root, text="Latches", width=50)
         self.latches_frame.grid(row=32, column=0, columnspan=10, sticky="nsew", padx=15, pady=15, ipady=5)
 
+        # Configurar las columnas y filas del frame de los latches para que se expandan
+        for i in range(4):
+            self.latches_frame.grid_columnconfigure(i, weight=1)
+        self.latches_frame.grid_rowconfigure(0, weight=1)
+
+
         # Subframes for each latch
         self.if_id_frame = tk.LabelFrame(self.latches_frame, text="IF / ID")
-        self.if_id_frame.grid(row=0, column=0, padx=15, pady=5)
+        self.if_id_frame.grid(row=0, column=0, padx=15, pady=5, sticky="nsew")
         self.id_ex_frame = tk.LabelFrame(self.latches_frame, text="ID / EX")
-        self.id_ex_frame.grid(row=0, column=1, padx=15, pady=5)
+        self.id_ex_frame.grid(row=0, column=1, padx=15, pady=5, sticky="nsew")
         self.ex_mem_frame = tk.LabelFrame(self.latches_frame, text="EX / MEM")
-        self.ex_mem_frame.grid(row=0, column=2, padx=15, pady=5)
+        self.ex_mem_frame.grid(row=0, column=2, padx=15, pady=5, sticky="nsew")
         self.mem_wb_frame = tk.LabelFrame(self.latches_frame, text="MEM / WB")
-        self.mem_wb_frame.grid(row=0, column=3, padx=15, pady=5)
+        self.mem_wb_frame.grid(row=0, column=3, padx=15, pady=5, sticky="nsew")
+
+        # Configurar las columnas y filas de los subframes para que se expandan
+        for frame in [self.if_id_frame, self.id_ex_frame, self.ex_mem_frame, self.mem_wb_frame]:
+            frame.grid_columnconfigure(0, weight=1)
+            frame.grid_rowconfigure(0, weight=1)
 
         # Text widgets for each latch
         self.if_id_text = tk.Text(self.if_id_frame, height=20, width=40)
-        self.if_id_text.pack()
+        self.if_id_text.pack(expand=True, fill='both')
         self.id_ex_text = tk.Text(self.id_ex_frame, height=20, width=40)
-        self.id_ex_text.pack()
+        self.id_ex_text.pack(expand=True, fill='both')
         self.ex_mem_text = tk.Text(self.ex_mem_frame, height=20, width=40)
-        self.ex_mem_text.pack()
+        self.ex_mem_text.pack(expand=True, fill='both')
         self.mem_wb_text = tk.Text(self.mem_wb_frame, height=20, width=40)
-        self.mem_wb_text.pack()
+        self.mem_wb_text.pack(expand=True, fill='both')
 
         self._update_latches_text_boxes()
 
