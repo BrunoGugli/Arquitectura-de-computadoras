@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="21,196,629.800 ns"></ZoomStartTime>
-      <ZoomEndTime time="21,196,746.101 ns"></ZoomEndTime>
-      <Cursor1Time time="21,196,655.000 ns"></Cursor1Time>
+      <ZoomStartTime time="23,248,625.250 ns"></ZoomStartTime>
+      <ZoomEndTime time="23,248,741.951 ns"></ZoomEndTime>
+      <Cursor1Time time="23,248,675.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="223"></NameColumnWidth>
-      <ValueColumnWidth column_width="183"></ValueColumnWidth>
+      <ValueColumnWidth column_width="179"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="28" />
+   <WVObjectSize size="21" />
    <wvobject type="logic" fp_name="/tb_top_pipeline/tb_clk">
       <obj_property name="ElementShortName">tb_clk</obj_property>
       <obj_property name="ObjectShortName">tb_clk</obj_property>
@@ -46,13 +46,21 @@
       <obj_property name="ObjectShortName">data_counter[4:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_receiver/o_rx_done">
-      <obj_property name="ElementShortName">o_rx_done</obj_property>
-      <obj_property name="ObjectShortName">o_rx_done</obj_property>
+   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_debug_unit/gral_state">
+      <obj_property name="ElementShortName">gral_state[3:0]</obj_property>
+      <obj_property name="ObjectShortName">gral_state[3:0]</obj_property>
    </wvobject>
-   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_receiver/i_rx">
-      <obj_property name="ElementShortName">i_rx</obj_property>
-      <obj_property name="ObjectShortName">i_rx</obj_property>
+   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/i_rd_en">
+      <obj_property name="ElementShortName">i_rd_en</obj_property>
+      <obj_property name="ObjectShortName">i_rd_en</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/o_empty">
+      <obj_property name="ElementShortName">o_empty</obj_property>
+      <obj_property name="ObjectShortName">o_empty</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/o_rd_data">
+      <obj_property name="ElementShortName">o_rd_data[31:0]</obj_property>
+      <obj_property name="ObjectShortName">o_rd_data[31:0]</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_transmitter/i_tx_start">
       <obj_property name="ElementShortName">i_tx_start</obj_property>
@@ -62,79 +70,40 @@
       <obj_property name="ElementShortName">i_data[31:0]</obj_property>
       <obj_property name="ObjectShortName">i_data[31:0]</obj_property>
    </wvobject>
+   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_transmitter/i_bd_tick">
+      <obj_property name="ElementShortName">i_bd_tick</obj_property>
+      <obj_property name="ObjectShortName">i_bd_tick</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_transmitter/o_tx_done">
+      <obj_property name="ElementShortName">o_tx_done</obj_property>
+      <obj_property name="ObjectShortName">o_tx_done</obj_property>
+   </wvobject>
    <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_transmitter/o_tx">
       <obj_property name="ElementShortName">o_tx</obj_property>
       <obj_property name="ObjectShortName">o_tx</obj_property>
    </wvobject>
-   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_transmitter/o_tx_transmiting">
-      <obj_property name="ElementShortName">o_tx_transmiting</obj_property>
-      <obj_property name="ObjectShortName">o_tx_transmiting</obj_property>
+   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/fifo_mem">
+      <obj_property name="ElementShortName">fifo_mem[74:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">fifo_mem[74:0][31:0]</obj_property>
    </wvobject>
-   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_debug_unit/gral_state">
-      <obj_property name="ElementShortName">gral_state[3:0]</obj_property>
-      <obj_property name="ObjectShortName">gral_state[3:0]</obj_property>
+   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/next_wr_ptr">
+      <obj_property name="ElementShortName">next_wr_ptr[6:0]</obj_property>
+      <obj_property name="ObjectShortName">next_wr_ptr[6:0]</obj_property>
    </wvobject>
-   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_pipeline/u_instruction_decode/i_instruction">
-      <obj_property name="ElementShortName">i_instruction[31:0]</obj_property>
-      <obj_property name="ObjectShortName">i_instruction[31:0]</obj_property>
-      <obj_property name="Radix">BINARYRADIX</obj_property>
+   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/wr_ptr">
+      <obj_property name="ElementShortName">wr_ptr[6:0]</obj_property>
+      <obj_property name="ObjectShortName">wr_ptr[6:0]</obj_property>
    </wvobject>
-   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_debug_unit/o_stall">
-      <obj_property name="ElementShortName">o_stall</obj_property>
-      <obj_property name="ObjectShortName">o_stall</obj_property>
+   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/next_rd_ptr">
+      <obj_property name="ElementShortName">next_rd_ptr[6:0]</obj_property>
+      <obj_property name="ObjectShortName">next_rd_ptr[6:0]</obj_property>
    </wvobject>
-   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_debug_unit/o_halt">
-      <obj_property name="ElementShortName">o_halt</obj_property>
-      <obj_property name="ObjectShortName">o_halt</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_debug_unit/all_data_sent">
-      <obj_property name="ElementShortName">all_data_sent</obj_property>
-      <obj_property name="ObjectShortName">all_data_sent</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_debug_unit/registers_sent">
-      <obj_property name="ElementShortName">registers_sent[4:0]</obj_property>
-      <obj_property name="ObjectShortName">registers_sent[4:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_debug_unit/mem_data_sent">
-      <obj_property name="ElementShortName">mem_data_sent[4:0]</obj_property>
-      <obj_property name="ObjectShortName">mem_data_sent[4:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_debug_unit/latches_sent">
-      <obj_property name="ElementShortName">latches_sent[3:0]</obj_property>
-      <obj_property name="ObjectShortName">latches_sent[3:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_debug_unit/o_write_en_fifo">
-      <obj_property name="ElementShortName">o_write_en_fifo</obj_property>
-      <obj_property name="ObjectShortName">o_write_en_fifo</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_debug_unit/o_data_to_fifo">
-      <obj_property name="ElementShortName">o_data_to_fifo[31:0]</obj_property>
-      <obj_property name="ObjectShortName">o_data_to_fifo[31:0]</obj_property>
-      <obj_property name="Radix">HEXRADIX</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_debug_unit/o_reg_addr_to_read">
-      <obj_property name="ElementShortName">o_reg_addr_to_read[4:0]</obj_property>
-      <obj_property name="ObjectShortName">o_reg_addr_to_read[4:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/i_wr_en">
-      <obj_property name="ElementShortName">i_wr_en</obj_property>
-      <obj_property name="ObjectShortName">i_wr_en</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/i_rd_en">
-      <obj_property name="ElementShortName">i_rd_en</obj_property>
-      <obj_property name="ObjectShortName">i_rd_en</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_transmitter/data_counter">
-      <obj_property name="ElementShortName">data_counter[4:0]</obj_property>
-      <obj_property name="ObjectShortName">data_counter[4:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/rd_ptr">
+      <obj_property name="ElementShortName">rd_ptr[6:0]</obj_property>
+      <obj_property name="ObjectShortName">rd_ptr[6:0]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/i_wr_data">
       <obj_property name="ElementShortName">i_wr_data[31:0]</obj_property>
       <obj_property name="ObjectShortName">i_wr_data[31:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_fifo_transmitter/fifo_mem">
-      <obj_property name="ElementShortName">fifo_mem[74:0][31:0]</obj_property>
-      <obj_property name="ObjectShortName">fifo_mem[74:0][31:0]</obj_property>
    </wvobject>
 </wave_config>

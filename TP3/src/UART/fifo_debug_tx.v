@@ -35,6 +35,11 @@ always @(posedge i_clk) begin
         rd_ptr <= next_rd_ptr;
         fifo_count <= next_fifo_count;
         o_empty <= next_empty;
+
+        // Perform the write operation in sequential block
+        if (i_wr_en) begin
+            fifo_mem[wr_ptr] <= i_wr_data;
+        end
     end
 end
 
@@ -60,11 +65,6 @@ always @(*) begin
         next_fifo_count = fifo_count - 1;
         if (fifo_count == 1)
             next_empty = 1;
-    end
-
-    // Write data to FIFO memory
-    if (i_wr_en) begin
-        fifo_mem[wr_ptr] = i_wr_data;
     end
 end
 
