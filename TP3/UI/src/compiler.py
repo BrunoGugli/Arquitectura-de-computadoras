@@ -17,21 +17,26 @@ class Compiler():
         for instruction in instructions:
             compiled_instruction = self._translate(instruction)
             compiled_instructions.append(compiled_instruction)
+        
+        # print the compiled instructions in binary format
+        for instruction in compiled_instructions:
+            print(bin(instruction))
+
         return compiled_instructions
 
     def _translate(self, instruction: str) -> int:
-        inst_name = self._get_instruction_name(instruction)
-        inst_type = self._get_instruction_type(inst_name)
-        inst = self.instruction_builder_dict[inst_type](instruction)
+        inst_name_lower = self._get_instruction_name(instruction).lower()
+        inst_type = self._get_instruction_type(inst_name_lower)
+        inst = self.instruction_builder_dict[inst_type](inst_name_lower, instruction)
         if not inst:
             raise Exception(f"Instruction {instruction} has an invalid syntax")
         return inst
 
-    def _build_r_sa_instruction(self, instruction: str) -> int:
+    def _build_r_sa_instruction(self, instr_name: str, instruction: str) -> int:
         type_r_regex = "([\w]+)\s+\$(\d+),\s*\$(\d+),\s*(-?\d*)"
         match = re.match(type_r_regex, instruction)
         if match:
-            func = self.opcode_instructions_dict[match.group(1)]
+            func = self.opcode_instructions_dict[instr_name]
             rd = int(match.group(2))
             rt = int(match.group(3))
             shamt = int(match.group(4))
@@ -42,26 +47,26 @@ class Compiler():
         
         return None
 
-    def _build_r_instruction(self, instruction: str) -> int:
+    def _build_r_instruction(self, instr_name: str, instruction: str) -> int:
         type_r_regex = "([\w]+)\s+\$(\d+),\s*\$(\d+),\s*\$(\d+)"
         match = re.match(type_r_regex, instruction)
         if match:
-            func = self.opcode_instructions_dict[match.group(1)]
+            func = self.opcode_instructions_dict[instr_name]
             rs = int(match.group(3))
             rt = int(match.group(4))
             rd = int(match.group(2))
             self._check_register_boundary(instruction, rs, 0, 31, True, True)
             self._check_register_boundary(instruction, rt, 0, 31, True, True)
             self._check_register_boundary(instruction, rd, 0, 31, True, True)
-            return (0b000000 << 26) | (self._mask(rs, 0b11111) << 21) | (self._mask(rt, 0b11111) << 16) | (self._mask(rd, 0b11111) << 11) | 0b00000 | self._mask(func, 0b111111)
+            return (0b000000 << 26) | (self._mask(rs, 0b11111) << 21) | (self._mask(rt, 0b11111) << 16) | (self._mask(rd, 0b11111) << 11) | (0b00000 << 5) | self._mask(func, 0b111111)
 
         return None
 
-    def _build_i_instruction(self, instruction: str) -> int:
+    def _build_i_instruction(self, instr_name: str, instruction: str) -> int:
         type_i_regex = "([\w]+)\s+\$(\d+),\s*\$(\d+),\s*\(?(-?\d+)\)?"
         match = re.match(type_i_regex, instruction)
         if match:
-            opcode = self.opcode_instructions_dict[match.group(1)]
+            opcode = self.opcode_instructions_dict[instr_name]
             rs = int(match.group(3))
             rt = int(match.group(2))
             imm = int(match.group(4))
@@ -71,11 +76,11 @@ class Compiler():
         
         return None
 
-    def _build_j_instruction(self, instruction: str) -> int:
+    def _build_j_instruction(self, instr_name: str, instruction: str) -> int:
         type_j_regex = "([\w]+)\s+(\d+)"
         match = re.match(type_j_regex, instruction)
         if match:
-            opcode = self.opcode_instructions_dict[match.group(1)]
+            opcode = self.opcode_instructions_dict[instr_name]
             instr_index = int(match.group(2))
             return (self._mask(opcode, 0b111111) << 26) | self._mask(instr_index, 0x3FFFFFF)
         

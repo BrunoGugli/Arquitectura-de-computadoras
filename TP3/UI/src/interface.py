@@ -35,6 +35,7 @@ class Interface:
 
         self.executing_step: bool = False
         self.program_loaded: bool = False
+        self.baudrate_port_setted: bool = False
         self.instruction_count: int = 0
         self.current_execution_mode: ExecutionMode = ExecutionMode.CONTINUOUS
         self.load_config()
@@ -156,7 +157,7 @@ class Interface:
             self.file_entry.insert(0, file_path)
             try:
                 with open(file_path, "r") as file:
-                    self.instructions_from_file = file.readlines()
+                    self.instructions_from_file = [line for line in file.readlines() if line.strip()]
                     file.close()
                     print(f"File loaded successfully: {len(self.instructions_from_file)} instructions.")
             except Exception as e:
@@ -171,6 +172,7 @@ class Interface:
             if self.comunicator.serial:
                 self.save_config()
                 print(f"Baudrate set to: {self.baudrate}, Port set to: {self.port}")
+                self.baudrate_port_setted = True
             else:
                 messagebox.showerror("Error", "Error opening serial port. Please check the port and baudrate values.")
         except SerialException as e:
@@ -193,6 +195,9 @@ class Interface:
         if not self.intructions_to_send:
             messagebox.showerror("Error", "No instructions to load. Please compile a program first.")
             return
+        if not self.baudrate_port_setted:
+            messagebox.showerror("Error", "No port and baudrate set. Please set the port and baudrate first.")
+            return
         try:
             self.comunicator.send_data(b'\0lom')
             for instruction in self.intructions_to_send:
@@ -211,7 +216,12 @@ class Interface:
         if self.executing_step:
             messagebox.showerror("Error", "Already executing program in step mode.\nPlease cancel the current debug session to execute the program.")
             return
-        self._set_exec_mode()
+        try:
+            self.current_execution_mode = self._set_exec_mode()
+        except Exception as e:
+            messagebox.showerror("Error", f"Error setting execution mode: {e}")
+            return
+        
         if self.current_execution_mode == ExecutionMode.CONTINUOUS:
             self.comunicator.send_data(b'\0com')
             self._receive_data()
@@ -221,12 +231,16 @@ class Interface:
             self.executing_step = True
             messagebox.showwarning("Warning!", "Executing program in step mode.\nPress 'Next Step' to execute the next instruction.\nPress 'Cancel Debug' to stop the debug session.\nYou can close this window and keep using the interface.")
 
-    def _set_exec_mode(self):
+    def _set_exec_mode(self) -> ExecutionMode:
         mode = self.execution_mode.get()
+        if not mode:
+            raise Exception("No execution mode selected.")
         if mode == "Continuous":
-            self.current_execution_mode = ExecutionMode.CONTINUOUS
+            return ExecutionMode.CONTINUOUS
         elif mode == "Step":
-            self.current_execution_mode = ExecutionMode.STEP
+            return ExecutionMode.STEP
+        
+        raise Exception("Invalid execution mode selected.")
 
     def _receive_data(self):
         self.data_received_list.clear()

@@ -17,5 +17,6 @@ class Comunicator:
         self.serial.write(msg)
 
     def receive_data(self) -> bytes:
-        if self.serial.in_waiting >= 4:
-            return self.serial.read(4) # Lee 32 bits
+        while True:
+            if self.serial.in_waiting >= 4:
+                return self.serial.read(4) # Lee 32 bits
