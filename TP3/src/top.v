@@ -100,8 +100,7 @@ module top_pipeline#(
         .i_reset(i_reset),      // Connect to reset signal
         .i_tx_start(~top_transmit), 
         .i_bd_tick(baud_tick),  // Connect baud tick from baud_rate_gen
-        .i_data(data_to_transmit),   // EN ESTAS SEÑALES HAY UN ERROR GRANDE
-        //.o_tx_transmiting(), // Output signal to indicate transmission is in progress
+        .i_data(data_to_transmit),
         .o_tx_done(top_read_new_data),        // Output signal to indicate transmission is done
         .o_tx(o_tx)              // Output transmitted data
     );

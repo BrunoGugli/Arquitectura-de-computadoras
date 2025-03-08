@@ -253,7 +253,7 @@ always @(*) begin
         end
 
         SEND_INFO_TO_PC: begin
-            if (registers_sent < 32) begin
+            if (registers_sent < 0'b11111) begin
                 o_data_to_fifo = i_register_content;
                 registers_sent = registers_sent + 1;
             end else if(latches_sent < 11) begin
