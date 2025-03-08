@@ -10,6 +10,7 @@ module uart_transmitter
     input wire i_bd_tick,            // Tick signal from baud_rate_gen module
     input wire [DATA_BITS-1:0] i_data, // Data to be transmitted
     output reg o_tx_transmiting,     // Transmission in progress indicator
+    output reg o_tx_done,            // Transmission done indicator
     output wire o_tx                 // Transmitted data output
 );
 
@@ -37,6 +38,7 @@ module uart_transmitter
             data_reg <= 0;
             tx_reg <= 1;
             o_tx_transmiting <= 1'b0;
+            o_tx_done <= 1'b0;
         end else begin
             state <= next_state;
             tick_counter <= next_tick_counter;
@@ -55,6 +57,7 @@ module uart_transmitter
         next_data_reg = data_reg;
         next_tx_reg = tx_reg;
         next_tx_transmiting = o_tx_transmiting;
+        o_tx_done = 1'b0;
 
         case (state)
             idle: begin
@@ -104,6 +107,7 @@ module uart_transmitter
                 if (i_bd_tick) begin
                     if (tick_counter == (STP_BITS_TICKS - 1)) begin
                         next_state = idle;
+                        o_tx_done = 1'b1;
                         next_tx_transmiting = 1'b0;
                     end else begin
                         next_tick_counter = tick_counter + 1;

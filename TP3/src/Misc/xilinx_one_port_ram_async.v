@@ -31,6 +31,6 @@ module xilinx_one_port_ram_async
         end
     end
 
-    assign o_data = {mem[i_addr], mem[i_addr+1], mem[i_addr+2], mem[i_addr+3]};
+    assign o_data = {mem[i_addr+3], mem[i_addr+2], mem[i_addr+1], mem[i_addr]};
 
 endmodule

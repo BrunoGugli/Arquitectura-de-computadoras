@@ -84,7 +84,7 @@ module top_pipeline#(
         .i_clk(i_clk),        // Conectar al reloj del sistema
         .i_reset(i_reset),    // Conectar a la señal de reset
         .i_wr_en(top_fifo_write_en),       // No habilitar la escritura
-        .i_rd_en(~top_read_new_data),       // Habilitar la lectura
+        .i_rd_en(top_read_new_data),       // Habilitar la lectura
         .i_wr_data(data_from_debug),    // de la debug a la fifo
         .o_rd_data(data_to_transmit), // al transmiter
         .o_empty(top_transmit)            // FIFO vacío
@@ -100,8 +100,9 @@ module top_pipeline#(
         .i_reset(i_reset),      // Connect to reset signal
         .i_tx_start(~top_transmit), 
         .i_bd_tick(baud_tick),  // Connect baud tick from baud_rate_gen
-        .i_data(data_to_transmit),   
-        .o_tx_transmiting(top_read_new_data), // Output signal to indicate transmission is in progress
+        .i_data(data_to_transmit),   // EN ESTAS SEÑALES HAY UN ERROR GRANDE
+        //.o_tx_transmiting(), // Output signal to indicate transmission is in progress
+        .o_tx_done(top_read_new_data),        // Output signal to indicate transmission is done
         .o_tx(o_tx)              // Output transmitted data
     );
 
