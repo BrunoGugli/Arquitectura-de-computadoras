@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_top_pipeline_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tb_top_pipeline" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000000000 ms"></ZoomStartTime>
+      <ZoomEndTime time="8.520000001 ms"></ZoomEndTime>
+      <Cursor1Time time="0.800000000 ms"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="262"></NameColumnWidth>
+      <ValueColumnWidth column_width="408"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="8" />
+   <wvobject type="logic" fp_name="/tb_top_pipeline/tb_clk">
+      <obj_property name="ElementShortName">tb_clk</obj_property>
+      <obj_property name="ObjectShortName">tb_clk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_top_pipeline/tb_reset">
+      <obj_property name="ElementShortName">tb_reset</obj_property>
+      <obj_property name="ObjectShortName">tb_reset</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_baud_rate_gen/counter">
+      <obj_property name="ElementShortName">counter[31:0]</obj_property>
+      <obj_property name="ObjectShortName">counter[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_baud_rate_gen/o_baud_tick">
+      <obj_property name="ElementShortName">o_baud_tick</obj_property>
+      <obj_property name="ObjectShortName">o_baud_tick</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_receiver/state">
+      <obj_property name="ElementShortName">state[1:0]</obj_property>
+      <obj_property name="ObjectShortName">state[1:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_receiver/data_counter">
+      <obj_property name="ElementShortName">data_counter[5:0]</obj_property>
+      <obj_property name="ObjectShortName">data_counter[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_receiver/o_rx_done">
+      <obj_property name="ElementShortName">o_rx_done</obj_property>
+      <obj_property name="ObjectShortName">o_rx_done</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/tb_top_pipeline/u_top_pipeline/u_uart_receiver/i_rx">
+      <obj_property name="ElementShortName">i_rx</obj_property>
+      <obj_property name="ObjectShortName">i_rx</obj_property>
+   </wvobject>
+</wave_config>

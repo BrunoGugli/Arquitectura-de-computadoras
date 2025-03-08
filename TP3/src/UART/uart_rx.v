@@ -1,6 +1,6 @@
 module uart_receiver
 #(
-    parameter DATA_BITS = 8, // Now 8 data bits
+    parameter DATA_BITS = 32, // Now 8 data bits
     parameter STP_BITS_TICKS = 16 // One complete stop bit (16 ticks of oversampling clock)
 )
 (
@@ -21,7 +21,7 @@ localparam [1:0] stop = 2'b11;
 // Registers for the state machine
 reg [1:0] state, next_state; // Current state and next state
 reg [3:0] tick_counter, next_tick_counter; // Tick counters
-reg [2:0] data_counter, next_data_counter; // Now needs to count from 0 to 7 for 8 bits of data
+reg [4:0] data_counter, next_data_counter; // Now needs to count from 0 to 7 for 8 bits of data
 reg [DATA_BITS-1:0] data_reg, next_data_reg; // Data register (now 8 bits)
 
 // State machine
@@ -58,7 +58,7 @@ always @(*) begin
 
         start: begin
             if (i_bd_tick == 1) begin
-                if (tick_counter == (DATA_BITS-1)) begin
+                if (tick_counter == ((STP_BITS_TICKS/2)-1)) begin
                     next_state = data;
                     next_tick_counter = 0;
                     next_data_counter = 0;

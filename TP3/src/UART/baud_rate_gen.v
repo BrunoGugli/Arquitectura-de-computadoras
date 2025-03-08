@@ -1,6 +1,6 @@
 module baud_rate_gen
 #(
-    parameter clk_freq = 100000000, // 50 MHz
+    parameter clk_freq = 100000000, 
     parameter baud_rate = 9600 // 9.6 kbps
 )
 (

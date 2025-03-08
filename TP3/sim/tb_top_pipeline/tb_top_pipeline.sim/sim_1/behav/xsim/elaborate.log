@@ -1,0 +1,27 @@
+Vivado Simulator v2023.2
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: /tools/Xilinx/Vivado/2023.2/bin/unwrapped/lnx64.o/xelab --incr --debug typical --relax --mt 8 -L xil_defaultlib -L unisims_ver -L unimacro_ver -L secureip --snapshot tb_top_pipeline_behav xil_defaultlib.tb_top_pipeline xil_defaultlib.glbl -log elaborate.log 
+Using 8 slave threads.
+Starting static elaboration
+Pass Through NonSizing Optimizer
+WARNING: [VRFC 10-5021] port 'i_IF_ID_latch' is not connected on this instance [/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/top.v:44]
+Completed static elaboration
+Starting simulation data flow analysis
+WARNING: [XSIM 43-4099] "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/top.v" Line 1. Module top_pipeline doesn't have a timescale but at least one module in design has a timescale.
+WARNING: [XSIM 43-4099] "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/UART/baud_rate_gen.v" Line 1. Module baud_rate_gen_default doesn't have a timescale but at least one module in design has a timescale.
+WARNING: [XSIM 43-4099] "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/UART/uart_rx.v" Line 1. Module uart_receiver doesn't have a timescale but at least one module in design has a timescale.
+WARNING: [XSIM 43-4099] "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/Misc/debug_unit.v" Line 1. Module debug_unit doesn't have a timescale but at least one module in design has a timescale.
+WARNING: [XSIM 43-4099] "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/top.v" Line 1. Module top_pipeline doesn't have a timescale but at least one module in design has a timescale.
+WARNING: [XSIM 43-4099] "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/UART/baud_rate_gen.v" Line 1. Module baud_rate_gen_default doesn't have a timescale but at least one module in design has a timescale.
+WARNING: [XSIM 43-4099] "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/UART/uart_rx.v" Line 1. Module uart_receiver doesn't have a timescale but at least one module in design has a timescale.
+WARNING: [XSIM 43-4099] "/home/franco/Desktop/Arquitectura-de-computadoras/TP3/src/Misc/debug_unit.v" Line 1. Module debug_unit doesn't have a timescale but at least one module in design has a timescale.
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling module xil_defaultlib.baud_rate_gen_default
+Compiling module xil_defaultlib.uart_receiver
+Compiling module xil_defaultlib.debug_unit
+Compiling module xil_defaultlib.top_pipeline
+Compiling module xil_defaultlib.tb_top_pipeline
+Compiling module xil_defaultlib.glbl
+Built simulation snapshot tb_top_pipeline_behav

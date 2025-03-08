@@ -24,7 +24,11 @@ module instruction_mem (
     // lo que va a WB
     output reg [31:0] o_ALU_result,
     output reg [31:0] o_data_readed_from_memory,
-    output reg [4:0] o_reg_dest
+    output reg [4:0] o_reg_dest,
+
+    // Debug unit
+    input wire [31:0] i_address_to_read_from_debug,
+    output wire [31:0] o_mem_addr_content_to_debug
 );
 
     localparam MEM_ADDR_WIDTH = 13;
@@ -63,17 +67,21 @@ module instruction_mem (
 
     // manejo de la direccion de acceso a memoria
     always @(*) begin
-        case(i_ctl_MEM_data_width_MEM)
-            BYTE: begin
-                address_to_access_memory <= i_ALU_result[MEM_ADDR_WIDTH-1:0];
-            end
-            HALF_WORD: begin
-                address_to_access_memory <= {i_ALU_result[MEM_ADDR_WIDTH-1:1], 1'b0}; // si es half word, se alinea la direccion a la mas cercana en caso de estar desalineada (lsb = 0)
-            end
-            WORD: begin
-                address_to_access_memory <= {i_ALU_result[MEM_ADDR_WIDTH-1:2], 2'b00}; // si es word, se alinea la direccion a la mas cercana en caso de estar desalineada (2 lsb = 00)
-            end
-        endcase
+        if(~i_halt) begin
+            case(i_ctl_MEM_data_width_MEM)
+                BYTE: begin
+                    address_to_access_memory <= i_ALU_result[MEM_ADDR_WIDTH-1:0];
+                end
+                HALF_WORD: begin
+                    address_to_access_memory <= {i_ALU_result[MEM_ADDR_WIDTH-1:1], 1'b0}; // si es half word, se alinea la direccion a la mas cercana en caso de estar desalineada (lsb = 0)
+                end
+                WORD: begin
+                    address_to_access_memory <= {i_ALU_result[MEM_ADDR_WIDTH-1:2], 2'b00}; // si es word, se alinea la direccion a la mas cercana en caso de estar desalineada (2 lsb = 00)
+                end
+            endcase
+        end else begin
+            address_to_access_memory <= {i_address_to_read_from_debug[MEM_ADDR_WIDTH-1:2], 2'b00};
+        end
     end
 
     // lecturas (las escrituras ya se manejan con la memoria)
@@ -115,5 +123,7 @@ module instruction_mem (
             end
         end
     end
+
+    assign o_mem_addr_content_to_debug = data_readed_from_memory;
 
 endmodule
