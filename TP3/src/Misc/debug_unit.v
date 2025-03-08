@@ -32,7 +32,7 @@ module debug_unit(
 
     output reg [31:0] o_data_to_fifo,
     output reg o_write_en_fifo
-)
+);
 
 // Wires para los latches
 wire [31:0] IF_ID_latch1;

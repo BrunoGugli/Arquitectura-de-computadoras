@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 module instruction_decode_tb;
 
     reg i_clk;

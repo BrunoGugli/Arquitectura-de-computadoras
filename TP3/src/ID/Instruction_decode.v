@@ -206,7 +206,6 @@ module instruction_decode (
             o_inmediato <= 32'h00000000;
             o_opcode <= 6'b000000;
             o_shamt <= 5'b00000;
-            program_finished <= 0;
         end else begin
             if(~i_halt) begin
                 if (opcode == JAL_OPCODE || (opcode == R_TYPE_OPCODE && funct == JALR_FUNCT)) begin
@@ -286,7 +285,7 @@ module instruction_decode (
     assign inmediato = {{16{i_instruction[15]}}, i_instruction[15:0]}; // Inmediato con extension de signo
     assign o_rs_wire = rs; // para la hazard unit
     assign o_rt_wire = rt; // para la hazard unit
-    assign o_program_end = i_instruction == END_INSTR;
+    assign o_program_end = (i_instruction == END_INSTR) ? 1 : 0;
     // debug
     assign rs_to_bank = i_halt ? i_reg_read : rs;
     assign o_reg_content = RA;

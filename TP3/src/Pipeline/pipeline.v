@@ -254,7 +254,7 @@ module pipeline (
 
         // Debug unit
         .i_address_to_read_from_debug(i_addr_to_read_mem_data_from_debug),
-        .o_mem_addr_content_to_debug(o_mem_addr_content_to_debug),
+        .o_mem_addr_content_to_debug(o_mem_addr_content_to_debug)
            
     );
 

@@ -24,9 +24,9 @@ module xilinx_one_port_ram_async
                 BYTE:
                     mem[i_addr] <= i_data[7:0];
                 HALF_WORD:
-                    {mem[i_addr], mem[i_addr+1]} <= i_data[15:0];
+                    {mem[i_addr+1], mem[i_addr]} <= i_data[15:0];
                 WORD:
-                    {mem[i_addr], mem[i_addr+1], mem[i_addr+2], mem[i_addr+3]} <= i_data[31:0];
+                    {mem[i_addr+3], mem[i_addr+2], mem[i_addr+1], mem[i_addr]} <= i_data[31:0];
             endcase
         end
     end
