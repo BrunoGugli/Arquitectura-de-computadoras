@@ -20,5 +20,5 @@ Oct 13 2023
 /home/bruno/Brunooo/GitHub/Arqui/Arquitectura-de-computadoras/TP3/src/UART/uart_rx.v,1741421059,verilog,,/home/bruno/Brunooo/GitHub/Arqui/Arquitectura-de-computadoras/TP3/src/UART/uart_tx.v,,uart_receiver,,,,,,,,
 /home/bruno/Brunooo/GitHub/Arqui/Arquitectura-de-computadoras/TP3/src/UART/uart_tx.v,1741473392,verilog,,/home/bruno/Brunooo/GitHub/Arqui/Arquitectura-de-computadoras/TP3/src/Misc/xilinx_one_port_ram_async.v,,uart_transmitter,,,,,,,,
 /home/bruno/Brunooo/GitHub/Arqui/Arquitectura-de-computadoras/TP3/src/WB/instruction_write-back.v,1740212565,verilog,,/home/bruno/Brunooo/GitHub/Arqui/Arquitectura-de-computadoras/TP3/src/EX/intruction_exec.v,,instruction_wb,,,,,,,,
-/home/bruno/Brunooo/GitHub/Arqui/Arquitectura-de-computadoras/TP3/src/top.v,1741471185,verilog,,/home/bruno/Brunooo/GitHub/Arqui/Arquitectura-de-computadoras/TP3/src/UART/uart_rx.v,,top_pipeline,,,,,,,,
+/home/bruno/Brunooo/GitHub/Arqui/Arquitectura-de-computadoras/TP3/src/top.v,1741740577,verilog,,/home/bruno/Brunooo/GitHub/Arqui/Arquitectura-de-computadoras/TP3/src/UART/uart_rx.v,,top_pipeline,,,,,,,,
 /home/bruno/Brunooo/GitHub/Arqui/Arquitectura-de-computadoras/TP3/tb/top_tb.v,1741427808,verilog,,,,tb_top_pipeline,,,,,,,,

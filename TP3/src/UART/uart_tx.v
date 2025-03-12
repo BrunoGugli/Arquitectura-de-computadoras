@@ -35,7 +35,7 @@ module uart_transmitter
             data_counter <= 0;
             data_reg <= 0;
             tx_reg <= 1;
-            o_tx_done <= 1'b1;
+            //o_tx_done <= 1'b1;
         end else begin
             state <= next_state;
             tick_counter <= next_tick_counter;
@@ -52,6 +52,7 @@ module uart_transmitter
         next_data_counter = data_counter;
         next_data_reg = data_reg;
         next_tx_reg = tx_reg;
+        o_tx_done = 1'b0;
 
         case (state)
             idle: begin
@@ -60,7 +61,7 @@ module uart_transmitter
                     next_state = start;
                     next_tick_counter = 0;
                     next_data_reg = i_data;
-                    o_tx_done = 1'b0;
+                    //o_tx_done = 1'b0;
                 end
             end
 
