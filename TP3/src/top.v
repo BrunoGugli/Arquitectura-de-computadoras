@@ -78,16 +78,17 @@ module top_pipeline#(
     // Fifo for the transmiter
     fifo_transmitter #(
         .DATA_WIDTH(32), // 32 bits de ancho de datos
-        .FIFO_DEPTH(75)  // 75 elementos de profundidad
+        .FIFO_ADDR_WIDTH(7)  // 75 elementos de profundidad
     )
     u_fifo_transmitter (
         .i_clk(i_clk),        // Conectar al reloj del sistema
         .i_reset(i_reset),    // Conectar a la señal de reset
-        .i_wr_en(top_fifo_write_en),       // No habilitar la escritura
-        .i_rd_en(top_read_new_data),       // Habilitar la lectura
+        .i_wr(top_fifo_write_en),       // No habilitar la escritura
+        .i_rd(top_read_new_data),       // Habilitar la lectura
         .i_wr_data(data_from_debug),    // de la debug a la fifo
         .o_rd_data(data_to_transmit), // al transmiter
-        .o_empty(top_transmit)            // FIFO vacío
+        .o_empty(top_transmit),           // FIFO vacío
+        .o_full()
     );
 
     // UART transmitter instance
