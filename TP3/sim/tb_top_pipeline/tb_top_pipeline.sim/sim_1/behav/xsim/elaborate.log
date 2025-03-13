@@ -13,7 +13,7 @@ Completed simulation data flow analysis
 Time Resolution for simulation is 1ps
 Compiling module xil_defaultlib.baud_rate_gen_default
 Compiling module xil_defaultlib.uart_receiver
-Compiling module xil_defaultlib.fifo_transmitter
+Compiling module xil_defaultlib.fifo_transmitter(FIFO_ADDR_WIDTH...
 Compiling module xil_defaultlib.uart_transmitter
 Compiling module xil_defaultlib.debug_unit
 Compiling module xil_defaultlib.program_counter
