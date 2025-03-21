@@ -118,7 +118,6 @@ always @(posedge i_clk) begin
         latches_sent <= 0;
         o_write_en_fifo <= 1'b0;
         o_reset <= 1'b0;
-        sec_stall <= 0;
     end else begin
         gral_state <= gral_next_state;
         o_reset <= next_reset;
@@ -126,7 +125,6 @@ always @(posedge i_clk) begin
         case (gral_next_state)
             GRAL_IDLE: begin
                 o_halt <= 1'b1;
-                sec_stall <= 0;
                 o_write_en_fifo <= 1'b0;
                 last_instr_received <= 0;   // la reiniciamos por si venimos de LO_INTR_LOADED
                 canceled_step <= 0;         // la reiniciamos por si venimos de ST_ASSIGN
@@ -167,6 +165,7 @@ always @(posedge i_clk) begin
 
             SEND_REGISTERS: begin
                 o_write_en_fifo <= 1'b1;
+                o_halt <= 1'b1;
                 if(registers_sent < 32) begin
                     o_reg_addr_to_read = registers_sent;
                     registers_sent = registers_sent + 1;
@@ -264,8 +263,6 @@ always @(*) begin
             if (i_program_end) begin
                 aux_stall = 1'b1;
                 if (last_intr_count == 3) begin
-                    o_halt <= 1'b1; // tiene que ser aca para que el pipeline no siga propagando instrucciones en el proximo ciclo de clock
-                    aux_stall = 1'b0;
                     gral_next_state = SEND_REGISTERS;
                 end
             end 
@@ -291,6 +288,7 @@ always @(*) begin
         end
 
         SEND_REGISTERS: begin
+            aux_stall = 1'b0; // para cuando venimos del CNT_EXEC
             if (registers_sent < 32) begin
                 o_data_to_fifo = i_register_content;
             end else begin
