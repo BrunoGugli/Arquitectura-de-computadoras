@@ -51,20 +51,20 @@ wire [31:0] MEM_WB_latch3;
 localparam MEM_ADDR_WIDTH = 8; //recordar cambiar en memoria de datos
 
 // Estado3
-localparam [3:0] GRAL_IDLE          = 4'b0000;
-localparam [3:0] LO_IDLE            = 4'b0001;
-localparam [3:0] LO_ASSIGN          = 4'b0010;
-localparam [3:0] LO_INSTR_LOADED    = 4'b0011;
-localparam [3:0] CNT_EXEC           = 4'b0100;
-localparam [3:0] SEND_REGISTERS     = 4'b0101;
-localparam [3:0] SEND_LATCHES       = 4'b0110;
-localparam [3:0] SEND_MEM_DATA      = 4'b0111;
-localparam [3:0] SEND_MEM_DATA_ADDR = 4'b1000;
-localparam [3:0] SEND_END_DATA      = 4'b1001;
-localparam [3:0] ST_IDLE            = 4'b1010;
-localparam [3:0] ST_ASSIGN          = 4'b1011;
-localparam [3:0] ST_STAGE_EXECUTED  = 4'b1100;
-
+localparam [3:0] GRAL_IDLE              = 4'b0000;
+localparam [3:0] LO_IDLE                = 4'b0001;
+localparam [3:0] LO_ASSIGN              = 4'b0010;
+localparam [3:0] LO_INSTR_LOADED        = 4'b0011;
+localparam [3:0] CNT_EXEC               = 4'b0100;
+localparam [3:0] SEND_REGISTERS         = 4'b0101;
+localparam [3:0] SEND_LATCHES           = 4'b0110;
+localparam [3:0] SEND_MEM_DATA          = 4'b0111;
+localparam [3:0] SEND_ACTUAL_MEM_DATA   = 4'b1000;
+localparam [3:0] SEND_MEM_DATA_ADDR     = 4'b1001;
+localparam [3:0] SEND_END_DATA          = 4'b1010;
+localparam [3:0] ST_IDLE                = 4'b1011;
+localparam [3:0] ST_ASSIGN              = 4'b1100;
+localparam [3:0] ST_STAGE_EXECUTED      = 4'b1101;
 // Manejo de estados
 reg [3:0] gral_state, gral_next_state;
 
@@ -189,6 +189,11 @@ always @(posedge i_clk) begin
                 end
             end
 
+            SEND_ACTUAL_MEM_DATA: begin
+                o_write_en_fifo = 1'b1;
+                o_data_to_fifo = i_mem_data_content;
+            end
+
             SEND_MEM_DATA_ADDR: begin
                 o_write_en_fifo <= 1'b1;
                 o_data_to_fifo = o_addr_to_read_mem_data;
@@ -306,13 +311,15 @@ always @(*) begin
         SEND_MEM_DATA: begin
             if(mem_data_sent < ((2**MEM_ADDR_WIDTH)/4)) begin
                 if(i_mem_data_content != 32'h00000000 && i_mem_data_content === i_mem_data_content) begin
-                    o_write_en_fifo = 1'b1;
-                    o_data_to_fifo = i_mem_data_content;
-                    gral_next_state = SEND_MEM_DATA_ADDR;
+                    gral_next_state = SEND_ACTUAL_MEM_DATA;
                 end
             end else begin
                 gral_next_state = SEND_END_DATA;
             end
+        end
+
+        SEND_ACTUAL_MEM_DATA: begin
+            gral_next_state = SEND_MEM_DATA_ADDR;
         end
 
         SEND_MEM_DATA_ADDR: begin
