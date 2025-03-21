@@ -19,7 +19,6 @@ module instruction_exec (
     // lo que viene del ID
     input wire [31:0] i_RA,
     input wire [31:0] i_RB,
-    input wire [4:0] i_rs,
     input wire [4:0] i_rt,
     input wire [4:0] i_rd,
     input wire [5:0] i_funct,

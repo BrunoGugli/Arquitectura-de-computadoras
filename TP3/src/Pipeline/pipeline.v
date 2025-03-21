@@ -192,7 +192,6 @@ module pipeline (
         // lo que viene del ID
         .i_RA(ID_EX_RA),
         .i_RB(ID_EX_RB),
-        .i_rs(ID_EX_rs),
         .i_rt(ID_EX_rt),
         .i_rd(ID_EX_rd),
         .i_funct(ID_EX_funct),
