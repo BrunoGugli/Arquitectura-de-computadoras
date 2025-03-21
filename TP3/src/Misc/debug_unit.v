@@ -20,7 +20,7 @@ module debug_unit(
     // comunicacion con el pipeline
     output reg o_halt,
     output reg o_reset, // para resetear el pipeline (en realidad es para resetear el pc) cuando se vuelve a IDLE
-    output reg o_stall,
+    output wire o_stall,
 
     output reg o_write_instruction_flag,
     output reg [31:0] o_instruction_to_write,
@@ -70,6 +70,7 @@ reg [3:0] gral_state, gral_next_state;
 
 // para multidrive
 reg next_reset;
+reg aux_stall;
 
 // fixed message - GRAL
 localparam [31:0] load_mode_msg = "\0lom";
@@ -108,7 +109,6 @@ always @(posedge i_clk) begin
         step_mode <= 0;
         canceled_step <= 0;
         last_intr_count <= 2'b00;
-        o_stall <= 1'b0;
         o_write_instruction_flag <= 1'b0;
         o_instruction_to_write <= 32'h00000000;
         o_address_to_write_inst <= 32'h00000000;
@@ -118,6 +118,7 @@ always @(posedge i_clk) begin
         latches_sent <= 0;
         o_write_en_fifo <= 1'b0;
         o_reset <= 1'b0;
+        sec_stall <= 0;
     end else begin
         gral_state <= gral_next_state;
         o_reset <= next_reset;
@@ -125,7 +126,7 @@ always @(posedge i_clk) begin
         case (gral_next_state)
             GRAL_IDLE: begin
                 o_halt <= 1'b1;
-                o_stall <= 1'b0;
+                sec_stall <= 0;
                 o_write_en_fifo <= 1'b0;
                 last_instr_received <= 0;   // la reiniciamos por si venimos de LO_INTR_LOADED
                 canceled_step <= 0;         // la reiniciamos por si venimos de ST_ASSIGN
@@ -237,6 +238,7 @@ always @(*) begin
                     gral_next_state = ST_IDLE;
                 end
             end
+            aux_stall = 1'b0;
         end
 
         LO_IDLE: begin
@@ -260,10 +262,10 @@ always @(*) begin
 
         CNT_EXEC: begin
             if (i_program_end) begin
-                o_stall <= 1'b1;
+                aux_stall = 1'b1;
                 if (last_intr_count == 3) begin
                     o_halt <= 1'b1; // tiene que ser aca para que el pipeline no siga propagando instrucciones en el proximo ciclo de clock
-                    o_stall <= 1'b0;
+                    aux_stall = 1'b0;
                     gral_next_state = SEND_REGISTERS;
                 end
             end 
@@ -325,7 +327,7 @@ always @(*) begin
                 gral_next_state = GRAL_IDLE;
             end else begin
                 if(i_program_end) begin
-                    o_stall <= 1'b1;
+                    aux_stall = 1'b1;
                 end
                 gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la ejecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step_msg
             end
@@ -346,6 +348,8 @@ always @(*) begin
     latches_to_send[9] <= i_MEM_WB_latch[40:9];
     latches_to_send[10] <= i_MEM_WB_latch[70:41]; // two msb are ignored
 end
+
+assign o_stall = i_reset ? 1'b0 : aux_stall;
 
 
 
