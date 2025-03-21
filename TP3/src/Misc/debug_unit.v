@@ -132,6 +132,7 @@ always @(posedge i_clk) begin
                 registers_sent <= 0;        // la reiniciamos por si venimos de SEND_REGISTERS
                 mem_data_sent <= 0;         // la reiniciamos por si venimos de SEND_MEM_DATA
                 latches_sent <= 0;          // la reiniciamos por si venimos de SEND_LATCHES
+                last_intr_count <= 2'b00;   // la reiniciamos por si venimos de SEND_END_DATA
             end
 
             LO_IDLE: begin
@@ -321,7 +322,6 @@ always @(*) begin
         SEND_END_DATA: begin
             if(~step_mode) begin // termino la ejecucion en modo continuo
                 next_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
-                last_intr_count <= 2'b00;
                 gral_next_state = GRAL_IDLE;
             end else begin
                 if(i_program_end) begin
