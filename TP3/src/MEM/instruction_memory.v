@@ -31,7 +31,7 @@ module instruction_mem (
     output wire [31:0] o_mem_addr_content_to_debug
 );
 
-    localparam MEM_ADDR_WIDTH = 13;
+    localparam MEM_ADDR_WIDTH = 8; // recordar cambiar en la debug unit
     localparam BYTE = 2'b00;
     localparam HALF_WORD = 2'b01;
     localparam WORD = 2'b11;

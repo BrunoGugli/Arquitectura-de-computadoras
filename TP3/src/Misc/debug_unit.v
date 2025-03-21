@@ -48,7 +48,7 @@ wire [31:0] MEM_WB_latch2;
 wire [31:0] MEM_WB_latch3;
 
 // Ancho de la direccion de memoria de datos
-localparam MEM_ADDR_WIDTH = 13;
+localparam MEM_ADDR_WIDTH = 8; //recordar cambiar en memoria de datos
 
 // Estado3
 localparam [3:0] GRAL_IDLE          = 4'b0000;
@@ -67,6 +67,9 @@ localparam [3:0] ST_STAGE_EXECUTED  = 4'b1100;
 
 // Manejo de estados
 reg [3:0] gral_state, gral_next_state;
+
+// para multidrive
+reg next_reset;
 
 // fixed message - GRAL
 localparam [31:0] load_mode_msg = "\0lom";
@@ -117,11 +120,11 @@ always @(posedge i_clk) begin
         o_reset <= 1'b0;
     end else begin
         gral_state <= gral_next_state;
+        o_reset <= next_reset;
 
         case (gral_next_state)
             GRAL_IDLE: begin
                 o_halt <= 1'b1;
-                o_reset <= 1'b0; // para cuando se haga este 0, el pipeline ya va a haber leido el reset como 1 en el flanco de subida
                 o_stall <= 1'b0;
                 o_write_en_fifo <= 1'b0;
                 last_instr_received <= 0;   // la reiniciamos por si venimos de LO_INTR_LOADED
@@ -224,10 +227,13 @@ always @(*) begin
         GRAL_IDLE: begin
             if (i_data_ready) begin
                 if (i_data == load_mode_msg) begin
+                    next_reset = 1'b0;
                     gral_next_state = LO_IDLE;
                 end else if (i_data == cont_mode_msg && prog_ready) begin
+                    next_reset = 1'b0;
                     gral_next_state = CNT_EXEC;
                 end else if (i_data == step_mode_msg && prog_ready) begin
+                    next_reset = 1'b0;
                     gral_next_state = ST_IDLE;
                 end
             end
@@ -245,7 +251,7 @@ always @(*) begin
 
         LO_INSTR_LOADED: begin
             if (last_instr_received) begin
-                o_reset <= 1'b1; // pq estamos volviendo a idle
+                next_reset = 1'b1; // pq estamos volviendo a idle
                 gral_next_state = GRAL_IDLE;
             end else begin
                 gral_next_state = LO_IDLE;
@@ -273,7 +279,7 @@ always @(*) begin
             if (o_halt == 1'b0) begin
                 gral_next_state = ST_STAGE_EXECUTED;
             end else if (canceled_step) begin
-                o_reset <= 1'b1;
+                next_reset = 1'b1;
                 gral_next_state = GRAL_IDLE;
             end
         end
@@ -314,7 +320,7 @@ always @(*) begin
 
         SEND_END_DATA: begin
             if(~step_mode) begin // termino la ejecucion en modo continuo
-                o_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
+                next_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
                 last_intr_count <= 2'b00;
                 gral_next_state = GRAL_IDLE;
             end else begin

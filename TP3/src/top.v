@@ -78,7 +78,7 @@ module top_pipeline#(
     // Fifo for the transmiter
     fifo_transmitter #(
         .DATA_WIDTH(32), // 32 bits de ancho de datos
-        .FIFO_ADDR_WIDTH(7)  // 75 elementos de profundidad
+        .FIFO_ADDR_WIDTH(8)  // 75 elementos de profundidad
     )
     u_fifo_transmitter (
         .i_clk(i_clk),        // Conectar al reloj del sistema
