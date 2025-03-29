@@ -170,8 +170,9 @@ always @(posedge i_clk) begin
             end
 
             SEND_REGISTERS: begin
+                o_write_en_fifo <= 1'b0;
                 o_halt <= 1'b1;
-                if(registers_sent < 32) begin
+                if(registers_sent <= 32) begin
                     o_reg_addr_to_read = registers_sent;
                     registers_sent = registers_sent + 1;
                 end
@@ -192,7 +193,7 @@ always @(posedge i_clk) begin
 
             SEND_MEM_DATA: begin
                 o_write_en_fifo <= 1'b0;
-                if(mem_data_sent < ((2**DATA_MEM_ADDR_WIDTH)/4)) begin
+                if(mem_data_sent <= ((2**DATA_MEM_ADDR_WIDTH)/4)) begin
                     o_addr_to_read_mem_data = mem_data_sent * 4;
                     mem_data_sent = mem_data_sent + 1;
                 end
@@ -233,7 +234,6 @@ always @(posedge i_clk) begin
         endcase
     end
 end
-
 
 // Logica de la maquina de estados - GRAL
 always @(*) begin
@@ -305,7 +305,7 @@ always @(*) begin
 
         SEND_REGISTERS: begin
             aux_stall = 1'b0; // para cuando venimos del CNT_EXEC
-            if (registers_sent < 32) begin
+            if (registers_sent <= 32) begin
                 gral_next_state = SEND_SINGLE_REGISTER;
             end else begin
                 gral_next_state = SEND_LATCHES;
@@ -323,7 +323,7 @@ always @(*) begin
         end
 
         SEND_MEM_DATA: begin
-            if(mem_data_sent < ((2**DATA_MEM_ADDR_WIDTH)/4)) begin
+            if(mem_data_sent <= ((2**DATA_MEM_ADDR_WIDTH)/4)) begin
                 if (i_mem_data_content != 32'h00000000 && ((|i_mem_data_content) || (~&i_mem_data_content))) begin //detecta que el dato no es 0 ni indefinido
                     gral_next_state = SEND_ACTUAL_MEM_DATA;
                 end
@@ -369,8 +369,5 @@ always @(*) begin
 end
 
 assign o_stall = i_reset ? 1'b0 : aux_stall;
-
-
-
 
 endmodule
