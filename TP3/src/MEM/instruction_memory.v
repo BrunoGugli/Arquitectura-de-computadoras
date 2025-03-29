@@ -1,4 +1,8 @@
-module instruction_mem (
+module instruction_mem #(
+    parameter DATA_WIDTH = 8, // 1 byte por posicion de memoria
+    parameter MEM_ADDR_WIDTH = 8 // recordar cambiar en la debug unit
+)
+(
     input wire i_clk,
     input wire i_reset,
     input wire i_halt,
@@ -27,20 +31,19 @@ module instruction_mem (
     output reg [4:0] o_reg_dest,
 
     // Debug unit
-    input wire [31:0] i_address_to_read_from_debug,
-    output wire [31:0] o_mem_addr_content_to_debug
+    input wire [MEM_ADDR_WIDTH-1:0] i_address_to_read_from_debug,
+    output wire [(DATA_WIDTH*4)-1:0] o_mem_addr_content_to_debug
 );
 
-    localparam MEM_ADDR_WIDTH = 8; // recordar cambiar en la debug unit
     localparam BYTE = 2'b00;
     localparam HALF_WORD = 2'b01;
     localparam WORD = 2'b11;
 
-    wire [31:0] data_readed_from_memory;
+    wire [(DATA_WIDTH*4)-1:0] data_readed_from_memory;
     reg [MEM_ADDR_WIDTH-1:0] address_to_access_memory; // Este cable intermedio para manejar la direccion de acceso a memoria por si esta desalineada para su respectivo caso
 
     xilinx_one_port_ram_async #(
-        .DATA_WIDTH(8),
+        .DATA_WIDTH(DATA_WIDTH),
         .ADDR_WIDTH(MEM_ADDR_WIDTH) // el ancho del resultado de la ALU
     ) data_memory (
         .i_clk(i_clk),
@@ -78,9 +81,12 @@ module instruction_mem (
                 WORD: begin
                     address_to_access_memory <= {i_ALU_result[MEM_ADDR_WIDTH-1:2], 2'b00}; // si es word, se alinea la direccion a la mas cercana en caso de estar desalineada (2 lsb = 00)
                 end
+                default: begin
+                    address_to_access_memory <= 0; 
+                end
             endcase
         end else begin
-            address_to_access_memory <= {i_address_to_read_from_debug[MEM_ADDR_WIDTH-1:2], 2'b00};
+            address_to_access_memory <= i_address_to_read_from_debug[MEM_ADDR_WIDTH-1:0] & {{(MEM_ADDR_WIDTH-2){1'b1}}, 2'b00}; 
         end
     end
 

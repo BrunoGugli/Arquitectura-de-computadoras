@@ -9,6 +9,12 @@ module top_pipeline#(
 
 );
 
+    // parametros
+    localparam DATA_MEM_DATA_WIDTH = 8; // 1 byte por posicion de memoria
+    localparam DATA_MEM_ADDR_WIDTH = 8; // Ancho de la dirección de memoria
+    localparam INST_MEM_ADDR_WIDTH = 9; // Ancho de la dirección de memoria de instrucciones
+    localparam INST_MEM_DATA_WIDTH = 8; // 1 byte por posicion de memoria
+
     // Señales del UART
     wire baud_tick;
     wire rx_done;
@@ -16,13 +22,13 @@ module top_pipeline#(
 
     // Señales Debug Unit - Pipeline
     wire write_instruction_flag;
-    wire [31:0] instruction_to_write;
-    wire [31:0] address_to_write_inst;
+    wire [(INST_MEM_DATA_WIDTH*4)-1:0] instruction_to_write;
+    wire [INST_MEM_ADDR_WIDTH-1:0] address_to_write_inst;
 
     wire [31:0] top_reg_content;
     wire [4:0] top_reg_addr_to_read;
 
-    wire [31:0] top_addr_to_read_mem_data;
+    wire [DATA_MEM_ADDR_WIDTH-1:0] top_addr_to_read_mem_data;
 
     wire [31:0] top_mem_data_content;
 
@@ -107,7 +113,12 @@ module top_pipeline#(
     );
 
     // Instancia de la debug unit
-    debug_unit u_debug_unit (
+    debug_unit #(
+        .DATA_MEM_DATA_WIDTH(DATA_MEM_DATA_WIDTH), // 1 byte por posicion de memoria
+        .DATA_MEM_ADDR_WIDTH(DATA_MEM_ADDR_WIDTH), // Ancho de la dirección de memoria
+        .INST_MEM_ADDR_WIDTH(INST_MEM_ADDR_WIDTH), // Ancho de la dirección de memoria de instrucciones
+        .INST_MEM_DATA_WIDTH(INST_MEM_DATA_WIDTH) // 1 byte por posicion de memoria
+    ) u_debug_unit (
         .i_clk(i_clk),
         .i_reset(i_reset),
 
@@ -141,7 +152,13 @@ module top_pipeline#(
     );
 
     // Instancia del pipeline
-    pipeline u_pipeline (
+    pipeline #(
+        .DATA_MEM_DATA_WIDTH(DATA_MEM_DATA_WIDTH), // 1 byte por posicion de memoria
+        .DATA_MEM_ADDR_WIDTH(DATA_MEM_ADDR_WIDTH), // Ancho de la dirección de memoria  
+        .INST_MEM_ADDR_WIDTH(INST_MEM_ADDR_WIDTH), // Ancho de la dirección de memoria de instrucciones
+        .INST_MEM_DATA_WIDTH(INST_MEM_DATA_WIDTH) // 1 byte por posicion de memoria 
+        )
+        u_pipeline (
         
         .i_clk(i_clk),
         .i_reset(top_reset_for_pipeline),

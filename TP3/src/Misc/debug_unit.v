@@ -1,4 +1,10 @@
-module debug_unit(
+module debug_unit #(
+    parameter DATA_MEM_DATA_WIDTH = 8, // 1 byte por posicion de memoria
+    parameter DATA_MEM_ADDR_WIDTH = 8, // Ancho de la direccion de memoria de datos
+    parameter INST_MEM_ADDR_WIDTH = 9, // Ancho de la direccion de memoria de instrucciones
+    parameter INST_MEM_DATA_WIDTH = 8 // 1 byte por posicion de memoria
+)
+(
 
     input wire i_clk,
     input wire i_reset,
@@ -15,7 +21,7 @@ module debug_unit(
     input wire [70:0] i_MEM_WB_latch,
 
     input wire [31:0] i_register_content,
-    input wire [31:0] i_mem_data_content,
+    input wire [(DATA_MEM_DATA_WIDTH*4)-1:0] i_mem_data_content,
     
     // comunicacion con el pipeline
     output reg o_halt,
@@ -23,12 +29,12 @@ module debug_unit(
     output wire o_stall,
 
     output reg o_write_instruction_flag,
-    output reg [31:0] o_instruction_to_write,
-    output reg [31:0] o_address_to_write_inst,
+    output reg [(INST_MEM_DATA_WIDTH*4)-1:0] o_instruction_to_write,
+    output reg [INST_MEM_ADDR_WIDTH-1:0] o_address_to_write_inst,
 
     output reg [4:0] o_reg_addr_to_read,
 
-    output reg [31:0] o_addr_to_read_mem_data,
+    output reg [DATA_MEM_ADDR_WIDTH-1:0] o_addr_to_read_mem_data,
 
     output reg [31:0] o_data_to_fifo,
     output reg o_write_en_fifo
@@ -47,9 +53,6 @@ wire [31:0] MEM_WB_latch1_EX_MEM_latch3;
 wire [31:0] MEM_WB_latch2;
 wire [31:0] MEM_WB_latch3;
 
-// Ancho de la direccion de memoria de datos
-localparam MEM_ADDR_WIDTH = 8; //recordar cambiar en memoria de datos
-
 // Estado3
 localparam [3:0] GRAL_IDLE              = 4'b0000;
 localparam [3:0] LO_IDLE                = 4'b0001;
@@ -57,14 +60,16 @@ localparam [3:0] LO_ASSIGN              = 4'b0010;
 localparam [3:0] LO_INSTR_LOADED        = 4'b0011;
 localparam [3:0] CNT_EXEC               = 4'b0100;
 localparam [3:0] SEND_REGISTERS         = 4'b0101;
-localparam [3:0] SEND_LATCHES           = 4'b0110;
-localparam [3:0] SEND_MEM_DATA          = 4'b0111;
-localparam [3:0] SEND_ACTUAL_MEM_DATA   = 4'b1000;
-localparam [3:0] SEND_MEM_DATA_ADDR     = 4'b1001;
-localparam [3:0] SEND_END_DATA          = 4'b1010;
-localparam [3:0] ST_IDLE                = 4'b1011;
-localparam [3:0] ST_ASSIGN              = 4'b1100;
-localparam [3:0] ST_STAGE_EXECUTED      = 4'b1101;
+localparam [3:0] SEND_SINGLE_REGISTER   = 4'b0110;
+localparam [3:0] SEND_LATCHES           = 4'b0111;
+localparam [3:0] SEND_MEM_DATA          = 4'b1000;
+localparam [3:0] SEND_ACTUAL_MEM_DATA   = 4'b1001;
+localparam [3:0] SEND_MEM_DATA_ADDR     = 4'b1010;
+localparam [3:0] SEND_END_DATA          = 4'b1011;
+localparam [3:0] ST_IDLE                = 4'b1100;
+localparam [3:0] ST_ASSIGN              = 4'b1101;
+localparam [3:0] ST_STAGE_EXECUTED      = 4'b1110;
+
 // Manejo de estados
 reg [3:0] gral_state, gral_next_state;
 
@@ -165,12 +170,16 @@ always @(posedge i_clk) begin
             end
 
             SEND_REGISTERS: begin
-                o_write_en_fifo <= 1'b1;
                 o_halt <= 1'b1;
                 if(registers_sent < 32) begin
                     o_reg_addr_to_read = registers_sent;
                     registers_sent = registers_sent + 1;
                 end
+            end
+
+            SEND_SINGLE_REGISTER: begin
+                o_write_en_fifo <= 1'b1;
+                o_data_to_fifo = i_register_content;
             end
 
             SEND_LATCHES: begin
@@ -183,7 +192,7 @@ always @(posedge i_clk) begin
 
             SEND_MEM_DATA: begin
                 o_write_en_fifo <= 1'b0;
-                if(mem_data_sent < ((2**MEM_ADDR_WIDTH)/4)) begin
+                if(mem_data_sent < ((2**DATA_MEM_ADDR_WIDTH)/4)) begin
                     o_addr_to_read_mem_data = mem_data_sent * 4;
                     mem_data_sent = mem_data_sent + 1;
                 end
@@ -229,6 +238,7 @@ end
 // Logica de la maquina de estados - GRAL
 always @(*) begin
     gral_next_state = gral_state;
+    next_reset = o_reset;
     case (gral_state)
         GRAL_IDLE: begin
             if (i_data_ready) begin
@@ -296,10 +306,14 @@ always @(*) begin
         SEND_REGISTERS: begin
             aux_stall = 1'b0; // para cuando venimos del CNT_EXEC
             if (registers_sent < 32) begin
-                o_data_to_fifo = i_register_content;
+                gral_next_state = SEND_SINGLE_REGISTER;
             end else begin
                 gral_next_state = SEND_LATCHES;
             end
+        end
+
+        SEND_SINGLE_REGISTER: begin
+            gral_next_state = SEND_REGISTERS;
         end
 
         SEND_LATCHES: begin
@@ -309,8 +323,8 @@ always @(*) begin
         end
 
         SEND_MEM_DATA: begin
-            if(mem_data_sent < ((2**MEM_ADDR_WIDTH)/4)) begin
-                if(i_mem_data_content != 32'h00000000 && i_mem_data_content === i_mem_data_content) begin
+            if(mem_data_sent < ((2**DATA_MEM_ADDR_WIDTH)/4)) begin
+                if (i_mem_data_content != 32'h00000000 && ((|i_mem_data_content) || (~&i_mem_data_content))) begin //detecta que el dato no es 0 ni indefinido
                     gral_next_state = SEND_ACTUAL_MEM_DATA;
                 end
             end else begin

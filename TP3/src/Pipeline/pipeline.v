@@ -1,12 +1,18 @@
-module pipeline (
+module pipeline #(
+    parameter DATA_MEM_DATA_WIDTH = 8,
+    parameter DATA_MEM_ADDR_WIDTH = 8,
+    parameter INST_MEM_ADDR_WIDTH = 9,
+    parameter INST_MEM_DATA_WIDTH = 8
+    )
+    (
 
     input wire i_clk,
     input wire i_reset,
     input wire i_halt,
     input wire i_stall,
     input wire i_write_instruction_flag,
-    input wire [31:0] i_instruction_to_write,
-    input wire [31:0] i_address_to_write_inst,
+    input wire [(INST_MEM_DATA_WIDTH*4)-1:0] i_instruction_to_write,
+    input wire [INST_MEM_ADDR_WIDTH-1:0] i_address_to_write_inst,
    
     output wire [63:0] o_IF_ID_latch,
     output wire [138:0] o_ID_EX_latch,
@@ -16,8 +22,8 @@ module pipeline (
     input wire [4:0] i_reg_read,
     output wire [31:0] o_reg_content,
 
-    input wire [31:0] i_addr_to_read_mem_data_from_debug,
-    output wire [31:0] o_mem_addr_content_to_debug,
+    input wire [DATA_MEM_ADDR_WIDTH-1:0] i_addr_to_read_mem_data_from_debug,
+    output wire [(DATA_MEM_DATA_WIDTH*4)-1:0] o_mem_addr_content_to_debug,
 
     output wire o_program_end
 );
@@ -96,7 +102,10 @@ module pipeline (
 
 //------------------------------------------------- INSTANCIAS ----------------------------------------------------------
 
-    instruction_fetch u_instruction_fetch (
+    instruction_fetch #(
+        .INST_MEM_ADDR_WIDTH(INST_MEM_ADDR_WIDTH),
+        .INST_MEM_DATA_WIDTH(INST_MEM_DATA_WIDTH)
+    ) u_instruction_fetch (
 
         .i_clk(i_clk),
         .i_reset(i_reset),
@@ -222,7 +231,12 @@ module pipeline (
         .o_reg_dest_wire(EX_reg_dest)
     );
 
-    instruction_mem u_instruction_mem (
+    instruction_mem #(
+        .DATA_WIDTH(DATA_MEM_DATA_WIDTH),
+        .MEM_ADDR_WIDTH(DATA_MEM_ADDR_WIDTH) 
+    )
+        u_instruction_mem (
+
         
         .i_clk(i_clk),
         .i_reset(i_reset),
@@ -258,16 +272,13 @@ module pipeline (
     );
 
     instruction_wb u_instruction_wb (
-        .i_clk(i_clk),
         .i_reset(i_reset),
         .i_halt(i_halt),
 
         .i_ctl_WB_mem_to_reg_WB(MEM_WB_ctl_WB_mem_to_reg),
-        .i_ctl_WB_reg_write_WB(MEM_WB_ctl_WB_reg_write),
 
         .i_ALU_result(MEM_WB_ALU_result),
         .i_data_from_memory(MEM_WB_data_readed_from_memory),
-        .i_reg_dest(MEM_WB_reg_dest),
 
         .o_data_to_write(WB_data_to_write)
     );
