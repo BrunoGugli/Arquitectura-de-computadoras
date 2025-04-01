@@ -55,6 +55,20 @@ module top_pipeline#(
     wire top_transmit;
     wire top_read_new_data;
 
+    wire clk_wzrd_locked;
+    wire clk_wzrd_out1;
+    wire sys_reset;
+
+    clk_wiz_0 clk_wzrd(
+    // Clock out ports
+    .CLK_50MHz(clk_wzrd_out1),     // output CLK_50MHz
+    // Status and control signals
+    .locked(clk_wzrd_locked),       // output locked
+    .reset(i_reset), // input reset
+   // Clock in ports
+    .clk_in1(i_clk)      // input clk_in1
+    );
+
     // Instancia del generador de tasa de baudios
     baud_rate_gen #(
         .clk_freq(100000000),  // Reloj de 100 MHz
@@ -62,7 +76,7 @@ module top_pipeline#(
     )
     u_baud_rate_gen (
         .i_clk(i_clk),        // Conectar al reloj del sistema
-        .i_reset(i_reset),    // Conectar a la señal de reset
+        .i_reset(sys_reset),    // Conectar a la señal de reset
         .i_valid(1'b1),       // Siempre habilitar la generación baud_rate
         .o_baud_tick(baud_tick)  // baud_tick de salida para el receptor
     );
@@ -74,7 +88,7 @@ module top_pipeline#(
     )
     u_uart_receiver (
         .i_clk(i_clk),        // Conectar al reloj del sistema
-        .i_reset(i_reset),    // Conectar a la señal de reset
+        .i_reset(sys_reset),    // Conectar a la señal de reset
         .i_rx(i_rx),          // Conectar a la línea serial de entrada
         .i_bd_tick(baud_tick),// Conectar el baud tick desde baud_rate_gen
         .o_rx_done(rx_done),// Señal de salida cuando la recepción ha terminado
@@ -88,7 +102,7 @@ module top_pipeline#(
     )
     u_fifo_transmitter (
         .i_clk(i_clk),        // Conectar al reloj del sistema
-        .i_reset(i_reset),    // Conectar a la señal de reset
+        .i_reset(sys_reset),    // Conectar a la señal de reset
         .i_wr(top_fifo_write_en),       // No habilitar la escritura
         .i_rd(top_read_new_data),       // Habilitar la lectura
         .i_wr_data(data_from_debug),    // de la debug a la fifo
@@ -104,7 +118,7 @@ module top_pipeline#(
     )
     u_uart_transmitter (
         .i_clk(i_clk),          // Connect to system clock
-        .i_reset(i_reset),      // Connect to reset signal
+        .i_reset(sys_reset),      // Connect to reset signal
         .i_tx_start(~top_transmit), 
         .i_bd_tick(baud_tick),  // Connect baud tick from baud_rate_gen
         .i_data(data_to_transmit),
@@ -120,7 +134,7 @@ module top_pipeline#(
         .INST_MEM_DATA_WIDTH(INST_MEM_DATA_WIDTH) // 1 byte por posicion de memoria
     ) u_debug_unit (
         .i_clk(i_clk),
-        .i_reset(i_reset),
+        .i_reset(sys_reset),
 
         // comunicación con el UART
         .i_data_ready(rx_done), // Señal que indica que la recepción ha terminado
@@ -160,7 +174,7 @@ module top_pipeline#(
         )
         u_pipeline (
         
-        .i_clk(i_clk),
+        .i_clk(clk_wzrd_out1),
         .i_reset(top_reset_for_pipeline),
         .i_halt(top_halt), 
         .i_stall(top_stall), 
@@ -182,6 +196,7 @@ module top_pipeline#(
         .o_program_end(top_program_end)
     );
 
-assign top_reset_for_pipeline = top_reset_from_debug | i_reset;
+assign sys_reset = i_reset | !clk_wzrd_locked;
+assign top_reset_for_pipeline = top_reset_from_debug | sys_reset;
 
 endmodule
