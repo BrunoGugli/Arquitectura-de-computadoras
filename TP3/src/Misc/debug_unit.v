@@ -239,6 +239,7 @@ end
 always @(*) begin
     gral_next_state = gral_state;
     next_reset = o_reset;
+    aux_stall = 1'b0; // Default value to prevent latch inference
     case (gral_state)
         GRAL_IDLE: begin
             if (i_data_ready) begin

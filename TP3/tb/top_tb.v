@@ -1,3 +1,4 @@
+`timescale 1ns / 1ns
 
 module tb_top_pipeline();
 
@@ -33,7 +34,7 @@ module tb_top_pipeline();
         tb_reset = 0;
         
         // Esperamos algunos ciclos antes de enviar datos
-        #20
+        #1000;
 
         // Envío de trama UART: "\0lom" en binario es 01101100 01101111 01101101
         

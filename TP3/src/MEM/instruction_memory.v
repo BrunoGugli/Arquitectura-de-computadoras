@@ -48,7 +48,7 @@ module instruction_mem #(
     ) data_memory (
         .i_clk(i_clk),
         .i_we(i_ctl_MEM_mem_write_MEM),
-        .i_writing_data_width(i_ctl_MEM_data_width_MEM),
+        //.i_writing_data_width(i_ctl_MEM_data_width_MEM),
         .i_addr(address_to_access_memory),
         .i_data(i_data_to_write),
         .o_data(data_readed_from_memory)
