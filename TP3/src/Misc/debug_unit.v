@@ -217,6 +217,9 @@ always @(posedge i_clk) begin
             ST_IDLE: begin
                 o_write_en_fifo <= 1'b0;
                 step_mode <= 1;
+                registers_sent <= 0;        // la reiniciamos porque venimos de ejecutar un paso
+                mem_data_sent <= 0;         // la reiniciamos porque venimos de ejecutar un paso
+                latches_sent <= 0;          // la reiniciamos porque venimos de ejecutar un paso
             end
 
             ST_ASSIGN: begin

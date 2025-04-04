@@ -42,12 +42,14 @@ module instruction_mem #(
     wire [(DATA_WIDTH*4)-1:0] data_readed_from_memory;
     reg [MEM_ADDR_WIDTH-1:0] address_to_access_memory; // Este cable intermedio para manejar la direccion de acceso a memoria por si esta desalineada para su respectivo caso
 
+    wire write_enable;
+
     xilinx_one_port_ram_async #(
         .DATA_WIDTH(DATA_WIDTH),
         .ADDR_WIDTH(MEM_ADDR_WIDTH) // el ancho del resultado de la ALU
     ) data_memory (
         .i_clk(i_clk),
-        .i_we(i_ctl_MEM_mem_write_MEM),
+        .i_we(write_enable),
         //.i_writing_data_width(i_ctl_MEM_data_width_MEM),
         .i_addr(address_to_access_memory),
         .i_data(i_data_to_write),
@@ -131,5 +133,6 @@ module instruction_mem #(
     end
 
     assign o_mem_addr_content_to_debug = data_readed_from_memory;
+    assign write_enable = i_halt ? 1'b0 : i_ctl_MEM_mem_write_MEM;
 
 endmodule

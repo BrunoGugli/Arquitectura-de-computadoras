@@ -65,6 +65,8 @@ module instruction_decode (
     wire [5:0] funct;
     wire [4:0] rs_to_bank;
 
+    wire write_enable;
+
     localparam NOP = 32'h00000000;
     localparam END_INSTR = 32'hffffffff;
     localparam R_TYPE_OPCODE = 6'b000000;
@@ -81,7 +83,7 @@ module instruction_decode (
     ) u_register_bank (
         .i_clk(i_clk),
         .i_reset(i_reset),
-        .i_write_enable(i_ctl_wb_reg_write_wb),
+        .i_write_enable(write_enable),
         .i_read_reg1(rs_to_bank),
         .i_read_reg2(rt),
         .i_write_reg(i_write_addr_wb),
@@ -206,7 +208,6 @@ module instruction_decode (
             o_inmediato <= 32'h00000000;
             o_opcode <= 6'b000000;
             o_shamt <= 5'b00000;
-            program_finished <= 0;
         end else begin
             if(~i_halt) begin
                 if (opcode == JAL_OPCODE || (opcode == R_TYPE_OPCODE && funct == JALR_FUNCT)) begin
@@ -290,5 +291,6 @@ module instruction_decode (
     // debug
     assign rs_to_bank = i_halt ? i_reg_read : rs;
     assign o_reg_content = RA;
+    assign write_enable = i_halt ? 1'b0 : i_ctl_wb_reg_write_wb;
 
 endmodule
