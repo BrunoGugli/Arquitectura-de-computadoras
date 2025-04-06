@@ -219,7 +219,9 @@ class Interface:
         try:
             self.comunicator.send_data(b'\0lom')
             for instruction in self.intructions_to_send:
+                input("Press Enter to send the next instruction...")
                 self.comunicator.send_data(instruction.to_bytes(4, byteorder='big'))
+            input("Press Enter to send the end instruction...")
             self.comunicator.send_data((0xffffffff).to_bytes(4, byteorder='big')) # End instruction
             self.program_loaded = True
             print("Program loaded successfully!")

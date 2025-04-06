@@ -13,7 +13,7 @@ class Comunicator:
         if len(msg) != 4:
             raise ValueError("Data must be exactly 4 bytes long")
         # Print the message as bits
-        print(f"Sending: {binascii.hexlify(msg)}")
+        print(f"Sending: {binascii.hexlify(msg)}. Bin: {bin(int.from_bytes(msg, byteorder='big'))}")
         self.serial.write(msg)
 
     def receive_data(self) -> bytes:
