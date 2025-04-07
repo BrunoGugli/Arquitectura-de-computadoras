@@ -1,5 +1,5 @@
 module top_pipeline#(
-    parameter DATA_BITS = 32,
+    parameter DATA_BITS = 8,
     parameter STP_BITS_TICKS = 16
 )(
     input wire i_clk,
@@ -54,6 +54,8 @@ module top_pipeline#(
     wire [31:0] data_from_debug;
     wire top_transmit;
     wire top_read_new_data;
+    wire top_read_data_from_receiver;
+    wire [31:0]data_from_rx_to_debug_unit;
 
     wire clk_wzrd_locked;
     wire clk_wzrd_out1;
@@ -61,7 +63,7 @@ module top_pipeline#(
 
     clk_wiz_0 clk_wzrd(
     // Clock out ports
-    .clk_out1(clk_wzrd_out1),     // output CLK_50MHz
+    .CLK_50MHz(clk_wzrd_out1),     // output CLK_50MHz
     // Status and control signals
     .locked(clk_wzrd_locked),       // output locked
     .reset(i_reset), // input reset
@@ -93,6 +95,18 @@ module top_pipeline#(
         .i_bd_tick(baud_tick),// Conectar el baud tick desde baud_rate_gen
         .o_rx_done(rx_done),// Señal de salida cuando la recepción ha terminado
         .o_data(rx_data)      // Datos recibidos 
+    );
+
+    interface_receive_deb_unit #(
+        .SINGLE_DATA_WIDTH(DATA_BITS),     // ancho de datos
+        .FULL_DATA_WIDTH(32)     // ancho de datos completo
+    ) u_interface_receive_deb_unit (
+        .i_clk(clk_wzrd_out1),                           // Reloj del sistema
+        .i_reset(sys_reset),                             // Reset del sistema
+        .i_data_ready(rx_done),                          // Señal que indica que la recepción ha terminado
+        .i_data(rx_data),                           // Datos recibidos
+        .o_data_ready(top_read_data_from_receiver),                // Señal de datos listos para el debug unit
+        .o_data(data_from_rx_to_debug_unit)                         // Datos completos recibidos
     );
 
     // Fifo for the transmiter
@@ -137,8 +151,8 @@ module top_pipeline#(
         .i_reset(sys_reset),
 
         // comunicación con el UART
-        .i_data_ready(rx_done), // Señal que indica que la recepción ha terminado
-        .i_data(rx_data), // Datos recibidos
+        .i_data_ready(top_read_data_from_receiver), // Señal que indica que la recepción ha terminado
+        .i_data(data_from_rx_to_debug_unit), // Datos recibidos
 
         // comunicación con el pipeline
         .i_program_end(top_program_end), // Señal que indica que el programa ha terminado 
