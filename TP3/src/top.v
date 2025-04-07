@@ -1,5 +1,6 @@
 module top_pipeline#(
     parameter DATA_BITS = 8,
+    parameter FULL_DATA_BITS = 32,
     parameter STP_BITS_TICKS = 16
 )(
     input wire i_clk,
@@ -51,10 +52,16 @@ module top_pipeline#(
     wire [70:0] top_MEM_WB_latch;
 
     // señales UART
-    wire [DATA_BITS-1:0] data_to_transmit;
+    wire [FULL_DATA_BITS-1:0] data_from_fifo_to_buff;
+    wire [DATA_BITS-1:0] data_from_buff_to_tx;
+    wire top_rd_buff_to_fifo;
+    wire empty_fifo_to_buff;
+    wire top_tx_start;
+    wire top_tx_done;
+
+
+
     wire [31:0] data_from_debug;
-    wire top_transmit;
-    wire top_read_new_data;
     wire top_read_data_from_receiver;
     wire [31:0]data_from_rx_to_debug_unit;
 
@@ -120,12 +127,28 @@ module top_pipeline#(
         .i_clk(clk_wzrd_out1),        // Conectar al reloj del sistema
         .i_reset(sys_reset),    // Conectar a la señal de reset
         .i_wr(top_fifo_write_en),       // No habilitar la escritura
-        .i_rd(top_read_new_data),       // Habilitar la lectura
+        .i_rd(top_rd_buff_to_fifo),       // Habilitar la lectura
         .i_wr_data(data_from_debug),    // de la debug a la fifo
-        .o_rd_data(data_to_transmit), // al transmiter
-        .o_empty(top_transmit),           // FIFO vacío
-        .o_full()
+        .o_rd_data(data_from_fifo_to_buff), // al transmiter
+        .o_empty(empty_fifo_to_buff),           // FIFO vacío
+        .o_full() // vacio
     );
+
+
+    uart_buffer #(
+        .DATA_BITS(FULL_DATA_BITS) // 32 bits para datos
+    )
+    u_uart_buffer(
+        .i_clk(clk_wzrd_out1),        // Conectar al reloj del sistema
+        .i_reset(sys_reset),    // Conectar a la señal de reset
+        .i_fifo_empty(empty_fifo_to_buff),
+        .o_fifo_rd(top_rd_buff_to_fifo),
+        .i_fifo_data(data_from_fifo_to_buff),
+        .i_uart_done(top_tx_done),
+        .o_uart_start(top_tx_start),
+        .o_uart_data(data_from_buff_to_tx)
+
+    )
 
     // UART transmitter instance
     uart_transmitter #(
@@ -135,10 +158,10 @@ module top_pipeline#(
     u_uart_transmitter (
         .i_clk(clk_wzrd_out1),          // Connect to system clock
         .i_reset(sys_reset),      // Connect to reset signal
-        .i_tx_start(~top_transmit), 
+        .i_tx_start(top_tx_start), 
         .i_bd_tick(baud_tick),  // Connect baud tick from baud_rate_gen
-        .i_data(data_to_transmit),
-        .o_tx_done(top_read_new_data),        // Output signal to indicate transmission is done
+        .i_data(data_from_buff_to_tx),
+        .o_tx_done(top_tx_done),        // Output signal to indicate transmission is done
         .o_tx(o_tx)              // Output transmitted data
     );
 
