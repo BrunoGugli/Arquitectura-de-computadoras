@@ -195,8 +195,8 @@ class Interface:
                 messagebox.showerror("Error", "Error opening serial port. Please check the port and baudrate values.")
         except SerialException as e:
             messagebox.showerror("Error", f"Error opening serial port: {e}")
-        except ValueError:
-            messagebox.showerror("Error", "Invalid baudrate value. Please enter a valid integer.")
+        except ValueError as e:
+            messagebox.showerror("Error", f"Invalid value setting serial port: {e}")
 
     def compile_program(self):
         # Aquí se llamará al método del compilador

@@ -4,7 +4,7 @@ import binascii
 class Comunicator:
     def __init__(self, port:str, baudrate:int):
         try:
-            self.serial = serial.Serial(port, baudrate, timeout=1)
+            self.serial = serial.Serial(port=port, baudrate=baudrate, timeout=1)
         except serial.SerialException as e:
             print(f"Error opening serial port: {e}")
             self.serial = None
@@ -13,7 +13,7 @@ class Comunicator:
         if len(msg) != 4:
             raise ValueError("Data must be exactly 4 bytes long")
         # Print the message as bits
-        print(f"Sending: {binascii.hexlify(msg)}. Bin: {bin(int.from_bytes(msg, byteorder='big'))}")
+        print(f"Sending: {binascii.hexlify(msg)}. Bin: {bin(int.from_bytes(msg, byteorder='big'))}, Raw: {msg}")
         self.serial.write(msg)
 
     def receive_data(self) -> bytes:
