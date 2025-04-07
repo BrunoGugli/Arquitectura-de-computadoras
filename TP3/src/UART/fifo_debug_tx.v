@@ -1,4 +1,4 @@
-module fifo_transmitter_32in_8out
+module fifo_transmitter
 #(
     parameter IN_WIDTH = 32,     // Input width (32 bits)
     parameter OUT_WIDTH = 8,     // Output width (8 bits)

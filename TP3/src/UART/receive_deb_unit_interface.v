@@ -28,7 +28,6 @@ module interface_receive_deb_unit
             o_data_ready <= 1'b0;
             o_data <= 0;
             received_bytes <= 2'b00;
-            next_received_bytes <= 2'b00;
         end else begin
             state <= next_state;
             received_bytes <= next_received_bytes;
@@ -87,6 +86,7 @@ module interface_receive_deb_unit
 
             READY: begin
                 next_state = IDLE;
+                next_received_bytes = 2'b00; // Reset byte count after data is read
             end
         endcase
     end

@@ -5,7 +5,8 @@ module top_pipeline#(
     input wire i_clk,
     input wire i_reset,
     input wire i_rx, // Entrada de datos serial desde el testbench
-    output wire o_tx // Salida de datos serial hacia el testbench
+    output wire o_tx, // Salida de datos serial hacia el testbench
+    output wire [15:0] debug_data
 
 );
 
@@ -63,7 +64,7 @@ module top_pipeline#(
 
     clk_wiz_0 clk_wzrd(
     // Clock out ports
-    .CLK_50MHz(clk_wzrd_out1),     // output CLK_50MHz
+    .clk_out1(clk_wzrd_out1),     // output CLK_50MHz
     // Status and control signals
     .locked(clk_wzrd_locked),       // output locked
     .reset(i_reset), // input reset
@@ -111,8 +112,9 @@ module top_pipeline#(
 
     // Fifo for the transmiter
     fifo_transmitter #(
-        .DATA_WIDTH(32), // 32 bits de ancho de datos
-        .FIFO_ADDR_WIDTH(8)  // 75 elementos de profundidad
+        .IN_WIDTH(32),     // Input width (32 bits)
+        .OUT_WIDTH(8),     // Output width (8 bits)
+        .FIFO_ADDR_WIDTH(8) // FIFO depth
     )
     u_fifo_transmitter (
         .i_clk(clk_wzrd_out1),        // Conectar al reloj del sistema
@@ -212,5 +214,6 @@ module top_pipeline#(
 
 assign sys_reset = i_reset | !clk_wzrd_locked;
 assign top_reset_for_pipeline = top_reset_from_debug | sys_reset;
+assign debug_data = data_from_rx_to_debug_unit;
 
 endmodule
