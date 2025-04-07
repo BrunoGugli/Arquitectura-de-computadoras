@@ -71,7 +71,7 @@ module interface_receive_deb_unit
 
         case (state)
             IDLE: begin
-                if (~i_tx_busy && i_data_ready) begin
+                if (i_data_ready) begin
                     next_state = ASSIGN;
                 end
             end
