@@ -46,7 +46,7 @@ module uart_buffer
         end else begin
             state <= next_state;
             o_fifo_rd <= next_fifo_rd;
-            case (next_state)
+            case (state)
                 LOAD: begin
                     buffer_reg <= i_fifo_data;
                     byte_index <= 0;
