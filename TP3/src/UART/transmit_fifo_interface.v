@@ -14,10 +14,8 @@ module uart_buffer
     // Señales hacia UART transmitter
     input wire i_uart_done,
     output reg o_uart_start,
-    output reg [7:0] o_uart_data,
+    output reg [7:0] o_uart_data
     
-    // Señal para indicar que ya no hay más datos
-    output reg o_all_done
 );
 
     // Estados
@@ -72,7 +70,6 @@ module uart_buffer
         // Valores por defecto
         next_state = state;
         o_uart_start = 0;
-        o_all_done = 0;
         next_fifo_rd = 0;
 
         case (state)
@@ -80,9 +77,7 @@ module uart_buffer
                 if (!i_fifo_empty) begin
                     next_state = LOAD;
                     next_fifo_rd = 0;
-                end else begin
-                    o_all_done = 1;
-                end
+                end 
             end
 
             LOAD: begin

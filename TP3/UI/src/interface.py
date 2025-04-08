@@ -129,7 +129,7 @@ class Interface:
         self.registers_table.pack(expand=True, fill='both')
         
         for i in range(32):
-            self.registers_table.insert("", "end", values=(f"R{i}", "0"))
+            self.registers_table.insert("", "end", iid=f"R{i}", values=(f"R{i}", "0"))
         
         # Table for Latches
         self.latches_frame = tk.LabelFrame(self.root, text="Latches", width=50)
@@ -219,9 +219,9 @@ class Interface:
         try:
             self.comunicator.send_data(b'\0lom')
             for instruction in self.intructions_to_send:
-                input("Press Enter to send the next instruction...")
+                
                 self.comunicator.send_data(instruction.to_bytes(4, byteorder='big'))
-            input("Press Enter to send the end instruction...")
+            
             self.comunicator.send_data((0xffffffff).to_bytes(4, byteorder='big')) # End instruction
             self.program_loaded = True
             print("Program loaded successfully!")
