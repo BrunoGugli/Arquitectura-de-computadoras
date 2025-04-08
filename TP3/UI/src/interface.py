@@ -129,7 +129,7 @@ class Interface:
         self.registers_table.pack(expand=True, fill='both')
         
         for i in range(32):
-            self.registers_table.insert("", "end", values=(f"R{i}", "0"))
+            self.registers_table.insert("", "end", iid=f"R{i}", values=(f"R{i}", "0"))
         
         # Table for Latches
         self.latches_frame = tk.LabelFrame(self.root, text="Latches", width=50)
@@ -195,8 +195,8 @@ class Interface:
                 messagebox.showerror("Error", "Error opening serial port. Please check the port and baudrate values.")
         except SerialException as e:
             messagebox.showerror("Error", f"Error opening serial port: {e}")
-        except ValueError:
-            messagebox.showerror("Error", "Invalid baudrate value. Please enter a valid integer.")
+        except ValueError as e:
+            messagebox.showerror("Error", f"Invalid value setting serial port: {e}")
 
     def compile_program(self):
         # Aquí se llamará al método del compilador
@@ -219,7 +219,9 @@ class Interface:
         try:
             self.comunicator.send_data(b'\0lom')
             for instruction in self.intructions_to_send:
+                
                 self.comunicator.send_data(instruction.to_bytes(4, byteorder='big'))
+            
             self.comunicator.send_data((0xffffffff).to_bytes(4, byteorder='big')) # End instruction
             self.program_loaded = True
             print("Program loaded successfully!")
