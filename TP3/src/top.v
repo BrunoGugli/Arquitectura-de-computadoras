@@ -71,7 +71,7 @@ module top_pipeline#(
 
     clk_wiz_0 clk_wzrd(
     // Clock out ports
-    .clk_out1(clk_wzrd_out1),     // output CLK_50MHz
+    .CLK_50MHz(clk_wzrd_out1),     // output CLK_50MHz
     // Status and control signals
     .locked(clk_wzrd_locked),       // output locked
     .reset(i_reset), // input reset
@@ -119,8 +119,7 @@ module top_pipeline#(
 
     // Fifo for the transmiter
     fifo_transmitter #(
-        .IN_WIDTH(32),     // Input width (32 bits)
-        .OUT_WIDTH(8),     // Output width (8 bits)
+        .DATA_WIDTH(FULL_DATA_BITS), // data buffer bits
         .FIFO_ADDR_WIDTH(8) // FIFO depth
     )
     u_fifo_transmitter (
@@ -148,7 +147,7 @@ module top_pipeline#(
         .o_uart_start(top_tx_start),
         .o_uart_data(data_from_buff_to_tx)
 
-    )
+    );
 
     // UART transmitter instance
     uart_transmitter #(

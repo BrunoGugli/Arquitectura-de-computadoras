@@ -1,5 +1,6 @@
 import serial
 import binascii
+from typing import Generator
 
 class Comunicator:
     def __init__(self, port:str, baudrate:int):
@@ -21,5 +22,9 @@ class Comunicator:
 
     def receive_data(self) -> bytes:
         while True:
-            if self.serial.in_waiting >= 4:
-                return self.serial.read(4) # Lee 32 bits
+            if self.serial.in_waiting > 0:
+                data = self.serial.read(4) # Lee 32 bits
+                data = data[::-1]
+                # Print the message as bits
+                print(f"Received: {binascii.hexlify(data)}. Bin: {bin(int.from_bytes(data, byteorder='big'))}, Raw: {data}")
+                return data
