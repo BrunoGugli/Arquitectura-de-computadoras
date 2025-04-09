@@ -411,6 +411,75 @@ module tb_top_pipeline();
         // Bit de parada (1)
         tb_rx = 1; #(104160);
 
+
+        // Esperamos algunos ciclos antes de enviar datos
+        #(230000);
+
+
+        // Envío de trama UART: "\0com" en binario es 01100011 01101111 01101101
+        
+        // Bit de inicio (0)
+        @(posedge tb_clk);
+        tb_rx = 0; #(104160);
+
+        // Enviamos el "m" 01101101 (Reversed: 10110110)
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+
+        tb_rx = 1; #(104160);
+
+        @(posedge tb_clk);
+        tb_rx = 0; #(104160);
+
+        // Enviamos el "o" 01101111 (Reversed: 11110110)
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+
+        tb_rx = 1; #(104160);
+
+        @(posedge tb_clk);
+        tb_rx = 0; #(104160);
+
+        // Enviamos el "c" 01100011 (Reversed: 11000110)
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 1; #(104160);
+        tb_rx = 0; #(104160);
+
+        tb_rx = 1; #(104160);
+
+        @(posedge tb_clk);
+        tb_rx = 0; #(104160);
+
+        // Enviamos el "\0" 00000000 (Reversed: 00000000)
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+        tb_rx = 0; #(104160);
+
+        // Bit de parada (1)
+        tb_rx = 1; #(104160);
+
         /*
 
         // Bit de inicio (0)
