@@ -413,7 +413,7 @@ module tb_top_pipeline();
 
 
         // Esperamos algunos ciclos antes de enviar datos
-        #(230000);
+        #(230000000);
 
 
         // Envío de trama UART: "\0com" en binario es 01100011 01101111 01101101

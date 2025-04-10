@@ -40,10 +40,10 @@ module uart_buffer
             buffer_reg <= 0;
             byte_index <= 0;
             o_uart_data <= 0;
-            o_fifo_rd <= 0;
+            //o_fifo_rd <= 0;
         end else begin
             state <= next_state;
-            o_fifo_rd <= next_fifo_rd;
+            //o_fifo_rd <= next_fifo_rd;
             case (state)
                 LOAD: begin
                     buffer_reg <= i_fifo_data;
@@ -70,13 +70,15 @@ module uart_buffer
         // Valores por defecto
         next_state = state;
         o_uart_start = 0;
-        next_fifo_rd = 0;
+        //next_fifo_rd = 0;
+        o_fifo_rd = 0;
 
         case (state)
             IDLE: begin
                 if (!i_fifo_empty) begin
                     next_state = LOAD;
-                    next_fifo_rd = 0;
+                    //next_fifo_rd = 0;
+                    o_fifo_rd = 0;
                 end 
             end
 
@@ -112,7 +114,8 @@ module uart_buffer
                         2'd2: next_state = SEND_BYTE_3;
                         2'd3: begin
                             next_state = IDLE;
-                            next_fifo_rd = 1;
+                            //next_fifo_rd = 1;
+                            o_fifo_rd = 1;
                         end
                     endcase
                 end
