@@ -339,6 +339,10 @@ class Interface:
         self.latches_data_dict["MEM/WB"]["ALU_result"] = ((self.latches_content_received[9] >> 30) & 0x3) | ((self.latches_content_received[10] & 0x3fffffff) << 2)
 
     def _update_latches_text_boxes(self):
+        # Limpiar los text boxes de los latches
+        self.clear_latches_text_boxes()
+
+        # Actualizar los text boxes de los latches
         for data_name, data in self.latches_data_dict["IF/ID"].items():
             self.if_id_text.insert(tk.END, f"{data_name}: {data}\n")
 
@@ -351,11 +355,19 @@ class Interface:
         for data_name, data in self.latches_data_dict["MEM/WB"].items():
             self.mem_wb_text.insert(tk.END, f"{data_name}: {data}\n")
 
+    def clear_latches_text_boxes(self):
+        self.if_id_text.delete(1.0, tk.END)
+        self.id_ex_text.delete(1.0, tk.END)
+        self.ex_mem_text.delete(1.0, tk.END)
+        self.mem_wb_text.delete(1.0, tk.END)
+
     def _update_memory_data(self):
         self.memory_text.delete(1.0, tk.END)
+        self.memory_text.insert(tk.END, f"Mem address\t\t\tValue\n")
+        self.memory_text.insert(tk.END, "-------------------------------------\n")
         # Toma datos de a dos ya que cada dato viene seguido de su dirección
         for i in range(0, len(self.memory_content_received), 2):
-            self.memory_text.insert(tk.END, f"{self.memory_content_received[i+1]}:\t{self.memory_content_received[i]}\n")
+            self.memory_text.insert(tk.END, f"{self.memory_content_received[i+1]}:\t\t\t{self.memory_content_received[i]}\n")
 
     def next_step(self):
         if not self.executing_step:
