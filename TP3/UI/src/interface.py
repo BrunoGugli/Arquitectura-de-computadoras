@@ -7,6 +7,7 @@ from src.comunicator import Comunicator
 from src.compiler import Compiler
 from enum import Enum
 from serial import SerialException
+import binascii
 
 
 class ExecutionMode(Enum):
@@ -117,8 +118,10 @@ class Interface:
         # Memory Data Display
         self.memory_frame = tk.LabelFrame(self.root, text="Memory Data")
         self.memory_frame.grid(row=0, column=4, columnspan=3, rowspan=16, ipadx=10, ipady=5, padx=15, pady=5, sticky="nsew")
-        self.memory_text = tk.Text(self.memory_frame, width=25)
-        self.memory_text.pack(expand=True, fill='both')
+        self.memory_table = ttk.Treeview(self.memory_frame, columns=("Address", "Value"), show="headings", height=16)
+        self.memory_table.heading("Address", text="Address")
+        self.memory_table.heading("Value", text="Value")
+        self.memory_table.pack(expand=True, fill='both')
         
         # Table for Registers
         self.registers_frame = tk.LabelFrame(self.root, text="Registers")
@@ -362,12 +365,12 @@ class Interface:
         self.mem_wb_text.delete(1.0, tk.END)
 
     def _update_memory_data(self):
-        self.memory_text.delete(1.0, tk.END)
-        self.memory_text.insert(tk.END, f"Mem address\t\t\tValue\n")
-        self.memory_text.insert(tk.END, "-------------------------------------\n")
+        self.memory_table.delete(*self.memory_table.get_children())  # Limpiar la tabla de memoria
         # Toma datos de a dos ya que cada dato viene seguido de su dirección
         for i in range(0, len(self.memory_content_received), 2):
-            self.memory_text.insert(tk.END, f"{self.memory_content_received[i+1]}:\t\t\t{self.memory_content_received[i]}\n")
+            value = self.memory_content_received[i]
+            address = self.memory_content_received[i + 1]
+            self.memory_table.insert("", "end", values=(f"{hex(address)} ({address})", value))
 
     def next_step(self):
         if not self.executing_step:
@@ -389,6 +392,8 @@ class Interface:
             messagebox.showerror("Error", "No debug session in progress.\nPlease execute the program in step mode to debug.")
             return
         self.comunicator.send_data(b'clst')
+        self.executing_step = False
+        self.instruction_count = 0
 
     def _create_latches_data_dict(self) -> dict[str, dict[str, int]]:
         if_id_data: list[str] = ["instruction", "PC"]
