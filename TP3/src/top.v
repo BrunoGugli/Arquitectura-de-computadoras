@@ -71,7 +71,7 @@ module top_pipeline#(
 
     clk_wiz_0 clk_wzrd(
     // Clock out ports
-    .CLK_50MHz(clk_wzrd_out1),     // output CLK_50MHz
+    .clk_out1(clk_wzrd_out1),     // output CLK_50MHz
     // Status and control signals
     .locked(clk_wzrd_locked),       // output locked
     .reset(i_reset), // input reset
