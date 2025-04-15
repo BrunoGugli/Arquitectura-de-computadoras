@@ -27,5 +27,8 @@ class Comunicator:
                 self.serial.flush()
                 data = data[::-1]
                 # Print the message as bits
-                print(f"Received: {binascii.hexlify(data)}. Bin: {bin(int.from_bytes(data, byteorder='big'))}, Raw: {data}")
+                # print(f"Received: {binascii.hexlify(data)}. Bin: {bin(int.from_bytes(data, byteorder='big'))}, Raw: {data}")
                 return data
+            
+    def get_serial(self) -> serial.Serial | None:
+        return self.serial
