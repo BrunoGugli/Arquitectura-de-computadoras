@@ -54,21 +54,21 @@ wire [31:0] MEM_WB_latch2;
 wire [31:0] MEM_WB_latch3;
 
 // Estado3
-localparam [3:0] GRAL_IDLE              = 4'b0000;
-localparam [3:0] LO_IDLE                = 4'b0001;
-localparam [3:0] LO_ASSIGN              = 4'b0010;
-localparam [3:0] LO_INSTR_LOADED        = 4'b0011;
-localparam [3:0] CNT_EXEC               = 4'b0100;
-localparam [3:0] SEND_REGISTERS         = 4'b0101;
-localparam [3:0] SEND_SINGLE_REGISTER   = 4'b0110;
-localparam [3:0] SEND_LATCHES           = 4'b0111;
-localparam [3:0] SEND_MEM_DATA          = 4'b1000;
-localparam [3:0] SEND_ACTUAL_MEM_DATA   = 4'b1001;
-localparam [3:0] SEND_MEM_DATA_ADDR     = 4'b1010;
-localparam [3:0] SEND_END_DATA          = 4'b1011;
-localparam [3:0] ST_IDLE                = 4'b1100;
-localparam [3:0] ST_ASSIGN              = 4'b1101;
-localparam [3:0] ST_STAGE_EXECUTED      = 4'b1110;
+localparam [3:0] GRAL_IDLE              = 4'b0000; // 0
+localparam [3:0] LO_IDLE                = 4'b0001; // 1
+localparam [3:0] LO_ASSIGN              = 4'b0010; // 2
+localparam [3:0] LO_INSTR_LOADED        = 4'b0011; // 3
+localparam [3:0] CNT_EXEC               = 4'b0100; // 4
+localparam [3:0] SEND_REGISTERS         = 4'b0101; // 5
+localparam [3:0] SEND_SINGLE_REGISTER   = 4'b0110; // 6
+localparam [3:0] SEND_LATCHES           = 4'b0111; // 7
+localparam [3:0] SEND_MEM_DATA          = 4'b1000; // 8
+localparam [3:0] SEND_ACTUAL_MEM_DATA   = 4'b1001; // 9
+localparam [3:0] SEND_MEM_DATA_ADDR     = 4'b1010; // 10
+localparam [3:0] SEND_END_DATA          = 4'b1011; // 11
+localparam [3:0] ST_IDLE                = 4'b1100; // 12
+localparam [3:0] ST_ASSIGN              = 4'b1101; // 13
+localparam [3:0] ST_STAGE_EXECUTED      = 4'b1110; // 14
 
 // Manejo de estados
 reg [3:0] gral_state, gral_next_state;
@@ -242,7 +242,11 @@ end
 always @(*) begin
     gral_next_state = gral_state;
     next_reset = o_reset;
-    aux_stall = 1'b0; // Default value to prevent latch inference
+    if (i_program_end) begin
+        aux_stall = 1'b1;
+    end else begin
+        aux_stall = 1'b0;
+    end
     case (gral_state)
         GRAL_IDLE: begin
             if (i_data_ready) begin
@@ -281,7 +285,7 @@ always @(*) begin
 
         CNT_EXEC: begin
             if (i_program_end) begin
-                aux_stall = 1'b1;
+                //aux_stall = 1'b1;
                 if (last_intr_count == 3) begin
                     gral_next_state = SEND_REGISTERS;
                 end
@@ -308,7 +312,7 @@ always @(*) begin
         end
 
         SEND_REGISTERS: begin
-            aux_stall = 1'b0; // para cuando venimos del CNT_EXEC
+            //aux_stall = 1'b0; // para cuando venimos del CNT_EXEC
             if (registers_sent <= 32) begin
                 gral_next_state = SEND_SINGLE_REGISTER;
             end else begin
@@ -349,9 +353,9 @@ always @(*) begin
                 next_reset = 1'b1; // para que en el proximo ciclo de clock se resetee el pipeline
                 gral_next_state = GRAL_IDLE;
             end else begin
-                if(i_program_end) begin
-                    aux_stall = 1'b1;
-                end
+                // if(i_program_end) begin
+                //     aux_stall = 1'b1;
+                // end
                 gral_next_state = ST_IDLE; // simplemente nos vamos a ST_IDLE, que el final de la ejecucion se interprete a mano y vayamos a GRAL_IDLE con el cancel_step_msg
             end
         end

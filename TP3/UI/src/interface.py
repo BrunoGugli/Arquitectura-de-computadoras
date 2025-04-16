@@ -13,10 +13,10 @@ class ExecutionMode(Enum):
     CONTINUOUS = 1
     STEP = 2
 
-
 class Interface:
 
     CONFIG_FILE = "config.json"
+    NUMBER_OF_STAGES: Final = 5  # Number of stages in the pipeline
 
     def __init__(self):
         self.root = tk.Tk()
@@ -37,9 +37,9 @@ class Interface:
         self.program_loaded: bool = False
         self.baudrate_port_setted: bool = False
         self.count_instructions: bool = True
-        self.first_instuction_completely_executed: bool = False
         self.instructions_completed_count: int = 0
-        self.instruction_count: int = 0
+        self.instruction_entered_count: int = 0
+        self.steps_counter: int = 0
         self.current_execution_mode: ExecutionMode = ExecutionMode.CONTINUOUS
         self.load_config()
         self.create_widgets()
@@ -272,7 +272,7 @@ class Interface:
         elif self.current_execution_mode == ExecutionMode.STEP:
             self.comunicator.send_data(b'\0stm')
             self.executing_step = True
-            self.instruction_count += 1
+            self.instruction_entered_count += 1
             self._update_debug_session_in_progress_label()
             self._update_instruction_count()
             self._update_instructions_completed_count()
@@ -415,20 +415,21 @@ class Interface:
         self._receive_data()
         self._update_in_screen_data()
         if self.count_instructions:
-            self.instruction_count += 1
-        if self.first_instuction_completely_executed:
-            self.instructions_completed_count += 1
-        if self.instruction_count == len(self.intructions_to_send) - 1: # Se termino de ejecutar la ultima completamente
-            self.instructions_completed_count += 1
-            self.first_instuction_completely_executed = True
+            self.instruction_entered_count += 1
+        if self.steps_counter >= self.NUMBER_OF_STAGES - 1: # Se termino de ejecutar la primera completamente
+            if self.instructions_completed_count < len(self.intructions_to_send):
+                self.instructions_completed_count += 1
+        if self.instruction_entered_count == len(self.intructions_to_send):
             self.count_instructions = False
-        if self.instruction_count == len(self.intructions_to_send) + 1: # La instruccion END llego a ID
-            messagebox.showwarning("Warning", "End instruction reached the ID stage.")
+            
+        self.steps_counter += 1
         self._update_instruction_count()
         self._update_instructions_completed_count()
+        if self.steps_counter == len(self.intructions_to_send) + 1: # La instruccion END llego a ID
+            messagebox.showwarning("Warning", "End instruction reached the ID stage.")
 
     def _update_instruction_count(self):
-        self.instruction_count_label.config(text=f"Number of instructions entered into the pipeline: {self.instruction_count}/{len(self.intructions_to_send)}")
+        self.instruction_count_label.config(text=f"Number of instructions entered into the pipeline: {self.instruction_entered_count}/{len(self.intructions_to_send)}")
 
     def _update_instructions_completed_count(self):
         self.instructions_completed_label.config(text=f"Instructions completely executed: {self.instructions_completed_count}/{len(self.intructions_to_send)}")
@@ -448,9 +449,10 @@ class Interface:
     def cancel_debug_act(self):
         self.comunicator.send_data(b'clst')
         self.executing_step = False
-        self.instruction_count = 0
+        self.instruction_entered_count = 0
         self.instructions_completed_count = 0
-        self.first_instuction_completely_executed = False
+        self.steps_counter = 0
+        self.count_instructions = True
         
     def _create_latches_data_dict(self) -> dict[str, dict[str, int]]:
         if_id_data: list[str] = ["instruction", "PC"]
