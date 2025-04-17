@@ -1,6 +1,6 @@
 module uart_receiver
 #(
-    parameter DATA_BITS = 32, // Now 8 data bits
+    parameter DATA_BITS = 8, // Now 8 data bits
     parameter STP_BITS_TICKS = 16 // One complete stop bit (16 ticks of oversampling clock)
 )
 (

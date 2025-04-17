@@ -1,2 +1,2 @@
 # make all the files into sim/ folder, lfs files
-sim/* filter=lfs diff=lfs merge=lfs -text
+imp/* filter=lfs diff=lfs merge=lfs -text

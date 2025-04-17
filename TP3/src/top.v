@@ -1,11 +1,13 @@
 module top_pipeline#(
-    parameter DATA_BITS = 32,
+    parameter DATA_BITS = 8,
+    parameter FULL_DATA_BITS = 32,
     parameter STP_BITS_TICKS = 16
 )(
     input wire i_clk,
     input wire i_reset,
     input wire i_rx, // Entrada de datos serial desde el testbench
-    output wire o_tx // Salida de datos serial hacia el testbench
+    output wire o_tx, // Salida de datos serial hacia el testbench
+    output wire [15:0] debug_data
 
 );
 
@@ -50,10 +52,18 @@ module top_pipeline#(
     wire [70:0] top_MEM_WB_latch;
 
     // señales UART
-    wire [DATA_BITS-1:0] data_to_transmit;
+    wire [FULL_DATA_BITS-1:0] data_from_fifo_to_buff;
+    wire [DATA_BITS-1:0] data_from_buff_to_tx;
+    wire top_rd_buff_to_fifo;
+    wire empty_fifo_to_buff;
+    wire top_tx_start;
+    wire top_tx_done;
+
+
+
     wire [31:0] data_from_debug;
-    wire top_transmit;
-    wire top_read_new_data;
+    wire top_read_data_from_receiver;
+    wire [31:0]data_from_rx_to_debug_unit;
 
     wire clk_wzrd_locked;
     wire clk_wzrd_out1;
@@ -95,20 +105,48 @@ module top_pipeline#(
         .o_data(rx_data)      // Datos recibidos 
     );
 
+    interface_receive_deb_unit #(
+        .SINGLE_DATA_WIDTH(DATA_BITS),     // ancho de datos
+        .FULL_DATA_WIDTH(32)     // ancho de datos completo
+    ) u_interface_receive_deb_unit (
+        .i_clk(clk_wzrd_out1),                           // Reloj del sistema
+        .i_reset(sys_reset),                             // Reset del sistema
+        .i_data_ready(rx_done),                          // Señal que indica que la recepción ha terminado
+        .i_data(rx_data),                           // Datos recibidos
+        .o_data_ready(top_read_data_from_receiver),                // Señal de datos listos para el debug unit
+        .o_data(data_from_rx_to_debug_unit)                         // Datos completos recibidos
+    );
+
     // Fifo for the transmiter
     fifo_transmitter #(
-        .DATA_WIDTH(32), // 32 bits de ancho de datos
-        .FIFO_ADDR_WIDTH(8)  // 75 elementos de profundidad
+        .DATA_WIDTH(FULL_DATA_BITS), // data buffer bits
+        .FIFO_ADDR_WIDTH(8) // FIFO depth
     )
     u_fifo_transmitter (
         .i_clk(clk_wzrd_out1),        // Conectar al reloj del sistema
         .i_reset(sys_reset),    // Conectar a la señal de reset
         .i_wr(top_fifo_write_en),       // No habilitar la escritura
-        .i_rd(top_read_new_data),       // Habilitar la lectura
+        .i_rd(top_rd_buff_to_fifo),       // Habilitar la lectura
         .i_wr_data(data_from_debug),    // de la debug a la fifo
-        .o_rd_data(data_to_transmit), // al transmiter
-        .o_empty(top_transmit),           // FIFO vacío
-        .o_full()
+        .o_rd_data(data_from_fifo_to_buff), // al transmiter
+        .o_empty(empty_fifo_to_buff),           // FIFO vacío
+        .o_full() // vacio
+    );
+
+
+    uart_buffer #(
+        .DATA_BITS(FULL_DATA_BITS) // 32 bits para datos
+    )
+    u_uart_buffer(
+        .i_clk(clk_wzrd_out1),        // Conectar al reloj del sistema
+        .i_reset(sys_reset),    // Conectar a la señal de reset
+        .i_fifo_empty(empty_fifo_to_buff),
+        .o_fifo_rd(top_rd_buff_to_fifo),
+        .i_fifo_data(data_from_fifo_to_buff),
+        .i_uart_done(top_tx_done),
+        .o_uart_start(top_tx_start),
+        .o_uart_data(data_from_buff_to_tx)
+
     );
 
     // UART transmitter instance
@@ -119,10 +157,10 @@ module top_pipeline#(
     u_uart_transmitter (
         .i_clk(clk_wzrd_out1),          // Connect to system clock
         .i_reset(sys_reset),      // Connect to reset signal
-        .i_tx_start(~top_transmit), 
+        .i_tx_start(top_tx_start), 
         .i_bd_tick(baud_tick),  // Connect baud tick from baud_rate_gen
-        .i_data(data_to_transmit),
-        .o_tx_done(top_read_new_data),        // Output signal to indicate transmission is done
+        .i_data(data_from_buff_to_tx),
+        .o_tx_done(top_tx_done),        // Output signal to indicate transmission is done
         .o_tx(o_tx)              // Output transmitted data
     );
 
@@ -137,8 +175,8 @@ module top_pipeline#(
         .i_reset(sys_reset),
 
         // comunicación con el UART
-        .i_data_ready(rx_done), // Señal que indica que la recepción ha terminado
-        .i_data(rx_data), // Datos recibidos
+        .i_data_ready(top_read_data_from_receiver), // Señal que indica que la recepción ha terminado
+        .i_data(data_from_rx_to_debug_unit), // Datos recibidos
 
         // comunicación con el pipeline
         .i_program_end(top_program_end), // Señal que indica que el programa ha terminado 
@@ -198,5 +236,6 @@ module top_pipeline#(
 
 assign sys_reset = i_reset | !clk_wzrd_locked;
 assign top_reset_for_pipeline = top_reset_from_debug | sys_reset;
+assign debug_data = data_from_rx_to_debug_unit;
 
 endmodule

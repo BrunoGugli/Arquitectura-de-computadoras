@@ -13,10 +13,10 @@ class ExecutionMode(Enum):
     CONTINUOUS = 1
     STEP = 2
 
-
 class Interface:
 
     CONFIG_FILE = "config.json"
+    NUMBER_OF_STAGES: Final = 5  # Number of stages in the pipeline
 
     def __init__(self):
         self.root = tk.Tk()
@@ -36,11 +36,25 @@ class Interface:
         self.executing_step: bool = False
         self.program_loaded: bool = False
         self.baudrate_port_setted: bool = False
-        self.instruction_count: int = 0
+        self.count_instructions: bool = True
+        self.instructions_completed_count: int = 0
+        self.instruction_entered_count: int = 0
+        self.steps_counter: int = 0
         self.current_execution_mode: ExecutionMode = ExecutionMode.CONTINUOUS
         self.load_config()
         self.create_widgets()
-
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+    
+    def on_closing(self):
+        if not messagebox.askokcancel("Exit", "Do you want to close the application?"):
+            return
+        if self.executing_step:
+            self.cancel_debug_act()
+        if hasattr(self, 'comunicator') and self.comunicator and hasattr(self.comunicator, 'serial'):
+            self.comunicator.get_serial().close()
+            print("Puerto serial cerrado correctamente")
+        self.root.destroy()
+        
     def load_config(self):
         if os.path.exists(self.CONFIG_FILE):
             with open(self.CONFIG_FILE, "r") as file:
@@ -109,16 +123,25 @@ class Interface:
         self.next_step_btn.grid     (row=7, column=2, ipadx=25, pady=2, sticky="nsew")
         self.cancel_debug_btn.grid  (row=7, column=3, padx=5, pady=2, sticky="nsew")
 
-        # Intruction count label
+        # Intructions entered into the pipeline label
         self.instruction_count_label = tk.Label(self.root, text="Number of instructions entered into the pipeline: 0/0")
         self.instruction_count_label.grid(row=8, column=0, columnspan=4, sticky="nsew", padx=10, pady=5)
 
+        # Instructions completely executed label
+        self.instructions_completed_label = tk.Label(self.root, text="Instructions completely executed: 0/0")
+        self.instructions_completed_label.grid(row=9, column=0, columnspan=4, sticky="nsew", padx=10, pady=5)
+
+        # Debug session in progress label
+        self.debug_session_label = tk.Label(self.root, text="Debug session in progress: No")
+        self.debug_session_label.grid(row=10, column=0, columnspan=4, sticky="nsew", padx=10, pady=5)
 
         # Memory Data Display
         self.memory_frame = tk.LabelFrame(self.root, text="Memory Data")
         self.memory_frame.grid(row=0, column=4, columnspan=3, rowspan=16, ipadx=10, ipady=5, padx=15, pady=5, sticky="nsew")
-        self.memory_text = tk.Text(self.memory_frame, width=25)
-        self.memory_text.pack(expand=True, fill='both')
+        self.memory_table = ttk.Treeview(self.memory_frame, columns=("Address", "Value"), show="headings", height=16)
+        self.memory_table.heading("Address", text="Address")
+        self.memory_table.heading("Value", text="Value")
+        self.memory_table.pack(expand=True, fill='both')
         
         # Table for Registers
         self.registers_frame = tk.LabelFrame(self.root, text="Registers")
@@ -129,7 +152,7 @@ class Interface:
         self.registers_table.pack(expand=True, fill='both')
         
         for i in range(32):
-            self.registers_table.insert("", "end", values=(f"R{i}", "0"))
+            self.registers_table.insert("", "end", iid=f"R{i}", values=(f"R{i}", "0"))
         
         # Table for Latches
         self.latches_frame = tk.LabelFrame(self.root, text="Latches", width=50)
@@ -195,8 +218,8 @@ class Interface:
                 messagebox.showerror("Error", "Error opening serial port. Please check the port and baudrate values.")
         except SerialException as e:
             messagebox.showerror("Error", f"Error opening serial port: {e}")
-        except ValueError:
-            messagebox.showerror("Error", "Invalid baudrate value. Please enter a valid integer.")
+        except ValueError as e:
+            messagebox.showerror("Error", f"Invalid value setting serial port: {e}")
 
     def compile_program(self):
         # Aquí se llamará al método del compilador
@@ -219,7 +242,9 @@ class Interface:
         try:
             self.comunicator.send_data(b'\0lom')
             for instruction in self.intructions_to_send:
+                
                 self.comunicator.send_data(instruction.to_bytes(4, byteorder='big'))
+            
             self.comunicator.send_data((0xffffffff).to_bytes(4, byteorder='big')) # End instruction
             self.program_loaded = True
             print("Program loaded successfully!")
@@ -247,6 +272,10 @@ class Interface:
         elif self.current_execution_mode == ExecutionMode.STEP:
             self.comunicator.send_data(b'\0stm')
             self.executing_step = True
+            self.instruction_entered_count += 1
+            self._update_debug_session_in_progress_label()
+            self._update_instruction_count()
+            self._update_instructions_completed_count()
             messagebox.showwarning("Warning!", "Executing program in step mode.\nPress 'Next Step' to execute the next instruction.\nPress 'Cancel Debug' to stop the debug session.\nYou can close this window and keep using the interface.")
 
     def _set_exec_mode(self) -> ExecutionMode:
@@ -337,7 +366,13 @@ class Interface:
         self.latches_data_dict["MEM/WB"]["ALU_result"] = ((self.latches_content_received[9] >> 30) & 0x3) | ((self.latches_content_received[10] & 0x3fffffff) << 2)
 
     def _update_latches_text_boxes(self):
+        # Limpiar los text boxes de los latches
+        self.clear_latches_text_boxes()
+
+        # Actualizar los text boxes de los latches
         for data_name, data in self.latches_data_dict["IF/ID"].items():
+            if data_name == "instruction":
+                data = hex(data)
             self.if_id_text.insert(tk.END, f"{data_name}: {data}\n")
 
         for data_name, data in self.latches_data_dict["ID/EX"].items():
@@ -349,11 +384,28 @@ class Interface:
         for data_name, data in self.latches_data_dict["MEM/WB"].items():
             self.mem_wb_text.insert(tk.END, f"{data_name}: {data}\n")
 
+    def clear_latches_text_boxes(self):
+        self.if_id_text.delete(1.0, tk.END)
+        self.id_ex_text.delete(1.0, tk.END)
+        self.ex_mem_text.delete(1.0, tk.END)
+        self.mem_wb_text.delete(1.0, tk.END)
+
+    def _clear_memory_data_table(self):
+        self.memory_table.delete(*self.memory_table.get_children())
+
     def _update_memory_data(self):
-        self.memory_text.delete(1.0, tk.END)
+        self._clear_memory_data_table()
         # Toma datos de a dos ya que cada dato viene seguido de su dirección
         for i in range(0, len(self.memory_content_received), 2):
-            self.memory_text.insert(tk.END, f"{self.memory_content_received[i+1]}:\t{self.memory_content_received[i]}\n")
+            value = self.memory_content_received[i]
+            address = self.memory_content_received[i + 1]
+            self.memory_table.insert("", "end", values=(f"{hex(address)} ({address})", value))
+
+    def _update_debug_session_in_progress_label(self):
+        if self.executing_step:
+            self.debug_session_label.config(text="Debug session in progress: Yes")
+        else:
+            self.debug_session_label.config(text="Debug session in progress: No")
 
     def next_step(self):
         if not self.executing_step:
@@ -362,20 +414,46 @@ class Interface:
         self.comunicator.send_data(b'nxst')
         self._receive_data()
         self._update_in_screen_data()
-        self.instruction_count += 1
+        if self.count_instructions:
+            self.instruction_entered_count += 1
+        if self.steps_counter >= self.NUMBER_OF_STAGES - 1: # Se termino de ejecutar la primera completamente
+            if self.instructions_completed_count < len(self.intructions_to_send):
+                self.instructions_completed_count += 1
+        if self.instruction_entered_count == len(self.intructions_to_send):
+            self.count_instructions = False
+            
+        self.steps_counter += 1
         self._update_instruction_count()
-        if self.instruction_count == len(self.intructions_to_send):
-            messagebox.showwarning("Warning", "End of program reached!\nIf you want to execute again, cancel this debug session and execute the program again.")
+        self._update_instructions_completed_count()
+        if self.steps_counter == len(self.intructions_to_send) + 1: # La instruccion END llego a ID
+            messagebox.showwarning("Warning", "End instruction reached the ID stage.")
 
     def _update_instruction_count(self):
-        self.instruction_count_label.config(text=f"Number of instructions entered into the pipeline: {self.instruction_count}/{len(self.intructions_to_send)}")
+        self.instruction_count_label.config(text=f"Number of instructions entered into the pipeline: {self.instruction_entered_count}/{len(self.intructions_to_send)}")
+
+    def _update_instructions_completed_count(self):
+        self.instructions_completed_label.config(text=f"Instructions completely executed: {self.instructions_completed_count}/{len(self.intructions_to_send)}")
 
     def cancel_debug(self):
         if not self.executing_step:
             messagebox.showerror("Error", "No debug session in progress.\nPlease execute the program in step mode to debug.")
             return
+        if not messagebox.askyesno("Cancel Debug", "Are you sure you want to cancel the debug session?"):
+            return
+        self.cancel_debug_act()
+        self._update_instruction_count()
+        self._update_instructions_completed_count()
+        self._update_debug_session_in_progress_label()
+        self._clear_memory_data_table()
+        
+    def cancel_debug_act(self):
         self.comunicator.send_data(b'clst')
-
+        self.executing_step = False
+        self.instruction_entered_count = 0
+        self.instructions_completed_count = 0
+        self.steps_counter = 0
+        self.count_instructions = True
+        
     def _create_latches_data_dict(self) -> dict[str, dict[str, int]]:
         if_id_data: list[str] = ["instruction", "PC"]
         id_ex_data: list[str] = ["RA", "RB", "rs", "rt", "rd", "funct", "inmediato", "opcode", "shamt", "mem_to_reg", "mem_read", "mem_write", "reg_write", "unsigned", "data_width", "reg_dest", "alu_op", "alu_src"]
