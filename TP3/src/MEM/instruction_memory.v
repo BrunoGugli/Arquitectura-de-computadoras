@@ -41,6 +41,7 @@ module instruction_mem #(
 
     wire [(DATA_WIDTH*4)-1:0] data_readed_from_memory;
     reg [MEM_ADDR_WIDTH-1:0] address_to_access_memory; // Este cable intermedio para manejar la direccion de acceso a memoria por si esta desalineada para su respectivo caso
+    reg [(DATA_WIDTH*4)-1:0] data_to_write_memory;
 
     wire write_enable;
 
@@ -73,20 +74,24 @@ module instruction_mem #(
     // manejo de la direccion de acceso a memoria
     always @(*) begin
         if(~i_halt) begin
-            case(i_ctl_MEM_data_width_MEM)
-                BYTE: begin
-                    address_to_access_memory <= i_ALU_result[MEM_ADDR_WIDTH-1:0];
-                end
-                HALF_WORD: begin
-                    address_to_access_memory <= {i_ALU_result[MEM_ADDR_WIDTH-1:1], 1'b0}; // si es half word, se alinea la direccion a la mas cercana en caso de estar desalineada (lsb = 0)
-                end
-                WORD: begin
-                    address_to_access_memory <= {i_ALU_result[MEM_ADDR_WIDTH-1:2], 2'b00}; // si es word, se alinea la direccion a la mas cercana en caso de estar desalineada (2 lsb = 00)
-                end
-                default: begin
-                    address_to_access_memory <= 0; 
-                end
-            endcase
+            if (i_ctl_MEM_mem_read_MEM) begin
+                case(i_ctl_MEM_data_width_MEM) // solo nos movemos de byte si estamos en lectura
+                    BYTE: begin
+                        address_to_access_memory <= i_ALU_result[MEM_ADDR_WIDTH-1:0];
+                    end
+                    HALF_WORD: begin
+                        address_to_access_memory <= {i_ALU_result[MEM_ADDR_WIDTH-1:1], 1'b0}; // si es half word, se alinea la direccion a la mas cercana en caso de estar desalineada (lsb = 0)
+                    end
+                    WORD: begin
+                        address_to_access_memory <= {i_ALU_result[MEM_ADDR_WIDTH-1:2], 2'b00}; // si es word, se alinea la direccion a la mas cercana en caso de estar desalineada (2 lsb = 00)
+                    end
+                    default: begin
+                        address_to_access_memory <= 0; 
+                    end
+                endcase
+            end else begin // si estamos en escritura siempre usamos una direccion alineada cada 4 bytes, ya que el/los bytes donde escribir, lo manejamos en el bloque always(*) de las escrituras
+                address_to_access_memory <= {i_ALU_result[MEM_ADDR_WIDTH-1:2], 2'b00};
+            end
         end else begin
             address_to_access_memory <= i_address_to_read_from_debug[MEM_ADDR_WIDTH-1:0] & {{(MEM_ADDR_WIDTH-2){1'b1}}, 2'b00}; 
         end
@@ -116,6 +121,48 @@ module instruction_mem #(
                     end
                 endcase
             end
+        end
+    end
+
+    // escrituras en memoria
+    always @(*) begin
+        if(~i_halt) begin
+            case(i_ctl_MEM_data_width_MEM)
+                BYTE: begin
+                    case(i_ALU_result[1:0])
+                        2'b00: begin
+                            data_to_write_memory <= {data_readed_from_memory[31:8], i_data_to_write[7:0]};
+                        end
+                        2'b01: begin
+                            data_to_write_memory <= {data_readed_from_memory[31:16], i_data_to_write[7:0], data_readed_from_memory[7:0]};
+                        end
+                        2'b10: begin
+                            data_to_write_memory <= {data_readed_from_memory[31:24], i_data_to_write[7:0], data_readed_from_memory[15:0]};
+                        end
+                        2'b11: begin
+                            data_to_write_memory <= {i_data_to_write[7:0], data_readed_from_memory[23:0]};
+                        end
+                    endcase
+                end
+                HALF_WORD: begin
+                    case(i_ALU_result[1])
+                        1'b0: begin
+                            data_to_write_memory <= {data_readed_from_memory[31:16], i_data_to_write[15:0]};
+                        end
+                        1'b1: begin
+                            data_to_write_memory <= {i_data_to_write[15:0], data_readed_from_memory[15:0]};
+                        end
+                    endcase
+                end
+                WORD: begin
+                    data_to_write_memory <= i_data_to_write;
+                end
+                default: begin
+                    data_to_write_memory <= 0; 
+                end
+            endcase
+        end else begin
+            data_to_write_memory <= 0;
         end
     end
 
