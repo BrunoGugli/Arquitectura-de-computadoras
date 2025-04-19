@@ -53,7 +53,7 @@ module instruction_mem #(
         .i_we(write_enable),
         //.i_writing_data_width(i_ctl_MEM_data_width_MEM),
         .i_addr(address_to_access_memory),
-        .i_data(i_data_to_write),
+        .i_data(data_to_write_memory),
         .o_data(data_readed_from_memory)
     );
     
