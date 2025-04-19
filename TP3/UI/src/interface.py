@@ -48,7 +48,7 @@ class Interface:
     def on_closing(self):
         if not messagebox.askokcancel("Exit", "Do you want to close the application?"):
             return
-        if self.executing_step:
+        if hasattr(self, 'comunicator') and self.executing_step:
             self.cancel_debug_act()
         if hasattr(self, 'comunicator') and self.comunicator and hasattr(self.comunicator, 'serial'):
             self.comunicator.get_serial().close()
