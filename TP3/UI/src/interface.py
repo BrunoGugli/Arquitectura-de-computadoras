@@ -233,6 +233,9 @@ class Interface:
             messagebox.showerror("Error", f"Error compiling program: {e}")
 
     def load_program(self):
+        if self.executing_step:
+            messagebox.showerror("Error", "Already executing program in step mode.\nPlease cancel the current debug session to load a new program.")
+            return
         if not self.intructions_to_send:
             messagebox.showerror("Error", "No instructions to load. Please compile a program first.")
             return
