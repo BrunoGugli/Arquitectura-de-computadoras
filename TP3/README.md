@@ -129,13 +129,23 @@ Soporta tres modos:
   - Recibe comandos desde UART mediante `i_data_ready` e `i_data`.
   - Envía información como registros, latches y contenido de memoria a través de `o_data_to_fifo` y `o_write_en_fifo`.
 
-![Untitled Diagram](https://github.com/user-attachments/assets/19931d7a-cbea-493a-ba09-98353725a8fe)
+![Untitled Diagram](./media/debug_unit_state_diagram.svg)
 
-## Fifo para transmiter
+## Interfaces y FIFO para transmisión UART
 
-El módulo `uart_buffer` toma palabras de 32 bits desde una FIFO y las transmite byte a byte por un transmisor UART. Cuando detecta que la FIFO no está vacía, lee una palabra de 32 bits, la guarda en un registro, y la transmite en 4 etapas, cada una correspondiente a un byte. Luego vuelve a esperar más datos.
+### Interfaz RX|debug_unit
 
-El módulo `interface_receive_deb_unit` reconstruye una palabra de 32 bits (FULL_DATA_WIDTH) a partir de 4 bytes de entrada (i_data), que llegan de a uno cuando i_data_ready se activa. Cada byte recibido se asigna a la salida o_data. Cuando se han recibido los 4 bytes, o_data_ready se activa indicando que la palabra completa está lista.
+El módulo `interface_receive_deb_unit` es el encargado de construir datos de 32 bits a partir de 4 bytes recibidos por el receptor UART, luego este nuevo dato de 32 bits se le envía a la debug_unit.
+
+### FIFO debug_unit|(interfaz FIFO|TX)
+
+La debug_unit carga los datos a enviar por UART en una FIFO de datos de 32 bits.
+
+### Interfaz FIFO|TX
+
+El módulo `uart_buffer` toma palabras de 32 bits desde una FIFO y se las envía byte a byte al transmisor UART. Cuando detecta que la FIFO no está vacía, lee una palabra de 32 bits, la guarda en un registro, y la envía al transmisor en 4 etapas, cada una correspondiente a un byte. Luego vuelve a esperar más datos.
+
+<insertar diagrama de interfaces (lo tengo que terminar)>
 
 ## Interfaz gráfica
 
