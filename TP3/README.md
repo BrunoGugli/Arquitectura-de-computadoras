@@ -195,3 +195,7 @@ Queda como tarea a futuro corregir esto.
 - **Next Step**: le envía el comando `nxst` para indicarle que avance un ciclo en la ejecución y espera a recibir todos los datos correspondiente a la ejecución de este ciclo.
 
 - **Cancel Debug**: le envía el comando `clst` a la placa con el objetivo de indicarle que debe cancelar la sesión actual de debugging.
+
+### Recepción de datos desde la placa
+Debido a que no siempre se recibirán los datos desde la placa de la misma manera, no se explica en este README, cómo es que actualmente se hace esto para este caso y se debería implementar el "protocolo" correspondiente para cada caso.
+Para ver la implementación actual de la recepción y formateo de los datos y así poder editarlo segun corresponda, esto está presente en el método [_update_in_screen_data()](./UI/src/interface.py#L306).
