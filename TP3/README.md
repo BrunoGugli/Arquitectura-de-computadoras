@@ -145,26 +145,53 @@ La debug_unit carga los datos a enviar por UART en una FIFO de datos de 32 bits.
 
 El módulo `uart_buffer` toma palabras de 32 bits desde una FIFO y se las envía byte a byte al transmisor UART. Cuando detecta que la FIFO no está vacía, lee una palabra de 32 bits, la guarda en un registro, y la envía al transmisor en 4 etapas, cada una correspondiente a un byte. Luego vuelve a esperar más datos.
 
-<insertar diagrama de interfaces (lo tengo que terminar)>
+### Diagrama:
+
+![](./media/transmission_interfaces_diagram.svg)
 
 ## Interfaz gráfica
+La interfaz grafica implementada en Python permite interactuar con la debug unit del proyecto. A continuación se exponen las funcionalidades a modo de API para quien la desee usar si le sirviera para su proyecto.
 
+![intefaz_base](./media/GUI_base_screenshot.png)
 
+### Botones
 
+- **Set**: abre un serial port con el puerto y el baudrate indicados en los cuadros de texto.
 
+- **Load File**: permite cargar un archivo de lineas de texto los cuales deberían contener las instrucciones para el MIPS en assembler.
 
+- **Compile Program**: toma las instrucciones y las compila al formato binario correspondiente. Una aclaración en esta parte, es que para las instrucciones de tipo I que requieren un offset (e.g. loads, stores), por un error se las intenta compilar como las demas tipo I, por ejemplo, la forma correcta de escribir un store que cargue el valor del registro $0 en la posición 4 de memoria es la siguiente:
 
+```assembly
+sw $0, 4($0)
+```
 
+Pero para este compilador se debe escribir como:
 
+```assembly
+sw $0, $0, 4
+```
 
+Otro ejemplo con un load:
 
+```assembly
+lw $0, 8($0)
+```
 
+Se debe escribir como:
 
+```assembly
+lw $0, $0, 8
+```
 
+Queda como tarea a futuro corregir esto.
 
+- **Load Program**: carga las instrucciones en la placa, para esto le envía por UART el comando `\0lom` seguido de las instrucciones compiladas, y al final envía automáticamente la instrucción `0xFFFFFFFF` para indicar el fin del programa, por lo que esta no se debe incluir en el archivo de instrucciones.
 
+- **Execute**: ejecuta el programa segun el modo seleccionado en la casilla de la izquierda.
+  - **Continue**: al darle a `Execute` le envía a la placa el comando `\0com` para indicarle que debe ejecutar todo el programa y luego espera a recibir los datos al final de la ejecución de este.
+  - **Step**: al darle a `Execute` entra en el modo step y le envía a la placa el comando `\0stm`, en este momento la primera instucción ya se encuentra en la etapa IF.
+  
+- **Next Step**: le envía el comando `nxst` para indicarle que avance un ciclo en la ejecución y espera a recibir todos los datos correspondiente a la ejecución de este ciclo.
 
-
-
-
-
+- **Cancel Debug**: le envía el comando `clst` a la placa con el objetivo de indicarle que debe cancelar la sesión actual de debugging.
