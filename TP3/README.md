@@ -158,7 +158,7 @@ La interfaz grafica implementada en Python permite interactuar con la debug unit
 
 - **Set**: abre un serial port con el puerto y el baudrate indicados en los cuadros de texto.
 
-- **Load File**: permite cargar un archivo de lineas de texto los cuales deberían contener las instrucciones para el MIPS en assembler.
+- **Load File**: permite cargar un archivo de lineas de texto el cual debería contener las instrucciones para el MIPS en assembler.
 
 - **Compile Program**: toma las instrucciones y las compila al formato binario correspondiente. Una aclaración en esta parte, es que para las instrucciones de tipo I que requieren un offset (e.g. loads, stores), por un error se las intenta compilar como las demas tipo I, por ejemplo, la forma correcta de escribir un store que cargue el valor del registro $0 en la posición 4 de memoria es la siguiente:
 
@@ -175,13 +175,13 @@ sw $0, $0, 4
 Otro ejemplo con un load:
 
 ```assembly
-lw $0, 8($0)
+lw $0, 8($2)
 ```
 
 Se debe escribir como:
 
 ```assembly
-lw $0, $0, 8
+lw $0, $2, 8
 ```
 
 Queda como tarea a futuro corregir esto.
