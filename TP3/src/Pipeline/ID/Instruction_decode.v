@@ -172,13 +172,17 @@ module instruction_decode (
                     o_ctl_EX_ALU_op_ID <= 2'b00;
                     o_ctl_EX_ALU_src_ID <= 1'b0;
                 end else begin
-                    if(opcode == R_TYPE_OPCODE) begin // R_TYPE
+                    if(opcode == R_TYPE_OPCODE || opcode == JAL_OPCODE ) begin // R_TYPE
                         o_ctl_EX_reg_dest_ID <= 1'b1; // dest register is rd
                         o_ctl_EX_ALU_src_ID <= 1'b0; // ALU source is register
-                        if(funct == JALR_FUNCT) begin
-                            o_ctl_EX_ALU_op_ID <= 2'b00; // ALU operation is add
+                        if (opcode == R_TYPE_OPCODE) begin
+                            if(funct == JALR_FUNCT) begin
+                                o_ctl_EX_ALU_op_ID <= 2'b00; // ALU operation is add
+                            end else begin
+                                o_ctl_EX_ALU_op_ID <= 2'b10; // ALU operation is func field
+                            end
                         end else begin
-                            o_ctl_EX_ALU_op_ID <= 2'b10; // ALU operation is func field
+                            o_ctl_EX_ALU_op_ID <= 2'b00; // ALU operation is add
                         end
                     end else begin
                         o_ctl_EX_reg_dest_ID <= 1'b0; // dest register is rt
