@@ -95,7 +95,7 @@ module instruction_decode (
     // WB signals
     always @(posedge i_clk) begin
         if(i_reset) begin
-            o_ctl_WB_mem_to_reg_ID <= 1'b0;
+            o_ctl_WB_mem_to_reg_ID <= 1'b0; // 0 -> MEM to reg, 1 -> No MEM to reg
             o_ctl_WB_reg_write_ID <= 1'b0;
         end else begin
             if(~i_halt) begin
@@ -117,7 +117,7 @@ module instruction_decode (
                         o_ctl_WB_mem_to_reg_ID <= 1'b1;
                         o_ctl_WB_reg_write_ID <= 1'b1;
                     end else begin // store or branch instructions
-                        o_ctl_WB_mem_to_reg_ID <= 1'b1;
+                        o_ctl_WB_mem_to_reg_ID <= 1'b1; 
                         o_ctl_WB_reg_write_ID <= 1'b0;
                     end
                 end
@@ -131,7 +131,7 @@ module instruction_decode (
             o_ctl_MEM_mem_read_ID <= 1'b0;
             o_ctl_MEM_mem_write_ID <= 1'b0;
             o_ctl_MEM_unsigned_ID <= 1'b0;
-            o_ctl_MEM_data_width_ID <= 2'b00;
+            o_ctl_MEM_data_width_ID <= 2'b00; // 00 -> byte, 01 -> halfword, 11 -> word
         end else begin
             if(~i_halt) begin
                 if(i_stall || i_instruction == NOP) begin
@@ -162,9 +162,9 @@ module instruction_decode (
     // EX signals
     always @(posedge i_clk) begin
         if(i_reset) begin
-            o_ctl_EX_reg_dest_ID <= 1'b0;
-            o_ctl_EX_ALU_op_ID <= 2'b00;
-            o_ctl_EX_ALU_src_ID <= 1'b0;
+            o_ctl_EX_reg_dest_ID <= 1'b0; // 0 -> rt, 1 -> rd
+            o_ctl_EX_ALU_op_ID <= 2'b00; 
+            o_ctl_EX_ALU_src_ID <= 1'b0; // 0 -> register, 1 -> inmediato
         end else begin
             if(~i_halt) begin
                 if(i_stall || i_instruction == NOP) begin
@@ -183,7 +183,7 @@ module instruction_decode (
                     end else begin
                         o_ctl_EX_reg_dest_ID <= 1'b0; // dest register is rt
                         o_ctl_EX_ALU_src_ID <= 1'b1; // ALU source is inmediato
-                        if(opcode[5:3] == 3'b001) begin // Inmediato logic instructions
+                        if(opcode[5:3] == 3'b001) begin // Inmediato logic instructions (ADDI, ANDI, ORI, etc)
                             o_ctl_EX_ALU_op_ID <= 2'b11; 
                         end else if(opcode[5] == 1'b1 || opcode == JAL_OPCODE) begin // Load or store instructions
                             o_ctl_EX_ALU_op_ID <= 2'b00; // ALU operation is add
@@ -246,7 +246,7 @@ module instruction_decode (
                 o_reg_in_jump = 2'b01;
                 if(RA == RB) begin
                     o_jump = 1'b1;
-                    o_jump_address = i_pc + (inmediato << 2); // inmediato aligned
+                    o_jump_address = i_pc + (inmediato << 2); // inmediato aligned, numero de instrucciones a saltar
                 end
             end
 
