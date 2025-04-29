@@ -343,7 +343,7 @@ class Interface:
         self.latches_data_dict["ID/EX"]["opcode"] = (self.latches_content_received[2] >> 16) & 0x3f
         self.latches_data_dict["ID/EX"]["inmediato"] = ((self.latches_content_received[2] >> 22) & 0x3ff) | ((self.latches_content_received[3] & 0x3fffff) << 10)
         self.latches_data_dict["ID/EX"]["funct"] = (self.latches_content_received[3] >> 22) & 0x3f
-        self.latches_data_dict["ID/EX"]["rd"] = ((self.latches_content_received[3] >> 27) & 0xf) | ((self.latches_content_received[4] & 0x1) << 4)
+        self.latches_data_dict["ID/EX"]["rd"] = ((self.latches_content_received[3] >> 28) & 0xf) | ((self.latches_content_received[4] & 0x1) << 4)
         self.latches_data_dict["ID/EX"]["rt"] = (self.latches_content_received[4] >> 1) & 0x1f
         self.latches_data_dict["ID/EX"]["rs"] = (self.latches_content_received[4] >> 6) & 0x1f
         self.latches_data_dict["ID/EX"]["RB"] = ((self.latches_content_received[4] >> 11) & 0x1fffff) | ((self.latches_content_received[5] & 0x7ff) << 21)
