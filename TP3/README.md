@@ -199,3 +199,17 @@ Queda como tarea a futuro corregir esto.
 ### Recepción de datos desde la placa
 Debido a que no siempre se recibirán los datos desde la placa de la misma manera, no se explica en este README, cómo es que actualmente se hace esto para este caso y se debería implementar el "protocolo" correspondiente para cada caso.
 Para ver la implementación actual de la recepción y formateo de los datos y así poder editarlo segun corresponda, esto está presente en el método [_update_in_screen_data()](./UI/src/interface.py#L306).
+
+### Reporte de tiempo
+
+Durante la implementación del trabajo nos encontramos con que la propagación de los valores de ciertos registros del pipeline se realentizaban y no llegaban a propagarse en el tiempo necesario. Para solucionar esto se utilizó el ip core `clock wizard` con diferentes frecuencias hasta que la de 50Mhz nos permitió sintetizar el trabajo y poder probar su correcto funcionamiento.
+
+Con clocks mayores a 50Mhz
+![image](https://github.com/user-attachments/assets/c226ce8e-4d2b-4f5c-b64a-a27f935fba16)
+![image](https://github.com/user-attachments/assets/4e5272f9-6e9c-49e0-8ab3-a85ff9d9878a)
+
+Con clock de 50Mhz
+![image](https://github.com/user-attachments/assets/27a3813a-f7c8-4ca6-978f-667d1c831aa6)
+
+
+
