@@ -211,5 +211,23 @@ Con clocks mayores a 50Mhz
 Con clock de 50Mhz
 ![image](https://github.com/user-attachments/assets/27a3813a-f7c8-4ca6-978f-667d1c831aa6)
 
+### Conclusiones 
+Comprensión profunda del funcionamiento interno de un procesador
+El trabajo nos dió más entendimiento sobre cómo un procesador MIPS ejecuta instrucciones a través del pipeline, profundizando en el rol de cada una y su importancia.
+
+Diseño modular y reutilizable
+El pipeline se implementó en módulos bien definidos por etapa, lo que facilitó el desarrollo, la depuración y posibles futuras modificaciones o mejoras del diseño.
+
+Desafíos reales de diseño en hardware
+La implementación en Verilog y la integración en una FPGA Basys3 expuso problemas típicos del diseño digital, como sincronización, estados incorrectos por señales mal controladas, y limitaciones del hardware.
+
+Verilog hace optimizaciones según ciertos estándares al momento de diseñar, una de las cosas más importantes que nos sucedió es que al implementar el módulo de la memoria vivado no lo podía reconocer como memoria por las escrituras múltiples que había que hacerle, como resultado lo infería como registros, llevando el uso de celdas de la placa al 125% y no permitiendo la implementación.
+
+Importancia del debugging en sistemas embebidos
+La inclusión de una unidad de depuración con UART y una interfaz gráfica en Python demostró el valor de contar con herramientas que permitan observar el estado interno del procesador y facilitar su validación.
+
+Valor educativo del proyecto
+Más allá del resultado funcional, el proyecto se destaca como una experiencia formativa muy completa, requirió mucha concentración e integración de los conocimientos que la carrera aporta, junto con los de la materia y la capacidad de solventar errores.
+
 
 
