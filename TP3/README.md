@@ -47,7 +47,7 @@ Estas instrucciones se utilizan para realizar saltos incondicionales a direccion
 
 Ejemplo: `j 0x00400000` Salta a la dirección de memoria `0x00400000`.
 
-# Etapas
+## Etapas
 
 ### Instruction Fetch
 
@@ -160,13 +160,13 @@ La interfaz grafica implementada en Python permite interactuar con la debug unit
 
 - **Load File**: permite cargar un archivo de lineas de texto el cual debería contener las instrucciones para el MIPS en assembler.
 
-- **Compile Program**: toma las instrucciones y las compila al formato binario correspondiente. Una aclaración en esta parte, es que para las instrucciones de tipo I que requieren un offset (e.g. loads, stores), por un error se las intenta compilar como las demas tipo I, por ejemplo, la forma correcta de escribir un store que cargue el valor del registro $0 en la posición 4 de memoria es la siguiente:
+- **Compile Program**: toma las instrucciones y las ensambla al formato binario correspondiente. Una aclaración en esta parte, es que para las instrucciones de tipo I que requieren un offset (e.g. loads, stores), por un error se las intenta ensamblar como las demas tipo I, por ejemplo, la forma correcta de escribir un store que cargue el valor del registro $0 en la posición 4 de memoria es la siguiente:
 
 ```assembly
 sw $0, 4($0)
 ```
 
-Pero para este compilador se debe escribir como:
+Pero para este ensamblador se debe escribir como:
 
 ```assembly
 sw $0, $0, 4
@@ -184,6 +184,10 @@ Se debe escribir como:
 lw $0, $2, 8
 ```
 
+Sucede lo mismo con las instrucciones de salto `BEQ` y `BNE`, ya que tambien son tomadas como tipo I. La forma de escribirlo en este ensamblador se puede ver en [esta linea](./Instructions/loop_jump.txt#L12).
+
+Finalmente otro caso en el que sucede algo similar es con la instrucción JR, la cual se interpreta como tipo R, por lo tanto para que nuestro ensamblador la interprete bien debe escribirse como en [este ejemplo](./Instructions/subrutina.txt#L7).
+
 Queda como tarea a futuro corregir esto.
 
 - **Load Program**: carga las instrucciones en la placa, para esto le envía por UART el comando `\0lom` seguido de las instrucciones compiladas, y al final envía automáticamente la instrucción `0xFFFFFFFF` para indicar el fin del programa, por lo que esta no se debe incluir en el archivo de instrucciones.
@@ -200,7 +204,7 @@ Queda como tarea a futuro corregir esto.
 Debido a que no siempre se recibirán los datos desde la placa de la misma manera, no se explica en este README, cómo es que actualmente se hace esto para este caso y se debería implementar el "protocolo" correspondiente para cada caso.
 Para ver la implementación actual de la recepción y formateo de los datos y así poder editarlo segun corresponda, esto está presente en el método [_update_in_screen_data()](./UI/src/interface.py#L306).
 
-### Reporte de tiempo
+## Reporte de tiempo
 
 Durante la implementación del trabajo nos encontramos con que la propagación de los valores de ciertos registros del pipeline se realentizaban y no llegaban a propagarse en el tiempo necesario. Para solucionar esto se utilizó el ip core `clock wizard` con diferentes frecuencias hasta que la de 50Mhz nos permitió sintetizar el trabajo y poder probar su correcto funcionamiento.
 
@@ -211,22 +215,22 @@ Con clocks mayores a 50Mhz
 Con clock de 50Mhz
 ![image](https://github.com/user-attachments/assets/27a3813a-f7c8-4ca6-978f-667d1c831aa6)
 
-### Conclusiones 
-Comprensión profunda del funcionamiento interno de un procesador
-El trabajo nos dió más entendimiento sobre cómo un procesador MIPS ejecuta instrucciones a través del pipeline, profundizando en el rol de cada una y su importancia.
+## Conclusiones 
+### Comprensión profunda del funcionamiento interno de un procesador
+El trabajo otorgó más entendimiento sobre cómo un procesador MIPS ejecuta instrucciones a través del pipeline, profundizando en el rol de cada una y su importancia.
 
-Diseño modular y reutilizable
+### Diseño modular y reutilizable
 El pipeline se implementó en módulos bien definidos por etapa, lo que facilitó el desarrollo, la depuración y posibles futuras modificaciones o mejoras del diseño.
 
-Desafíos reales de diseño en hardware
+### Desafíos reales de diseño en hardware
 La implementación en Verilog y la integración en una FPGA Basys3 expuso problemas típicos del diseño digital, como sincronización, estados incorrectos por señales mal controladas, y limitaciones del hardware.
 
-Verilog hace optimizaciones según ciertos estándares al momento de diseñar, una de las cosas más importantes que nos sucedió es que al implementar el módulo de la memoria vivado no lo podía reconocer como memoria por las escrituras múltiples que había que hacerle, como resultado lo infería como registros, llevando el uso de celdas de la placa al 125% y no permitiendo la implementación.
+Verilog hace optimizaciones según ciertos estándares al momento de diseñar, una de las cosas más importantes que nos sucedió es que al implementar el módulo de la memoria vivado no lo podía reconocer como memoria por las escrituras múltiples que había que hacerle, como resultado lo infería como registros, llevando el uso de celdas de la placa al 125% y no permitiendo la implementación. Para solucionar esto se 
 
-Importancia del debugging en sistemas embebidos
+### Importancia del debugging en sistemas embebidos
 La inclusión de una unidad de depuración con UART y una interfaz gráfica en Python demostró el valor de contar con herramientas que permitan observar el estado interno del procesador y facilitar su validación.
 
-Valor educativo del proyecto
+### Valor educativo del proyecto
 Más allá del resultado funcional, el proyecto se destaca como una experiencia formativa muy completa, requirió mucha concentración e integración de los conocimientos que la carrera aporta, junto con los de la materia y la capacidad de solventar errores.
 
 
